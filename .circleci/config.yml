@@ -36,7 +36,7 @@ jobs:
       - setup_remote_docker
       - restore_cache:
           key: oneko-url-trigger-artifacts-{{ .Environment.CIRCLE_SHA1 }}
-      - run: cp /home/circleci/project/circle-artifacts/o-neko-url-trigger .
+      - run: cp ./circle-artifacts/o-neko-url-trigger .
       - run: docker build -t subshellgmbh/o-neko-url-trigger:latest-dev .
       - run: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
       - run: docker push subshellgmbh/o-neko-url-trigger:latest-dev
@@ -49,7 +49,7 @@ jobs:
       - setup_remote_docker
       - restore_cache:
           key: oneko-url-trigger-artifacts-{{ .Environment.CIRCLE_SHA1 }}
-      - run: cp /home/circleci/project/circle-artifacts/o-neko-url-trigger .
+      - run: cp ./circle-artifacts/o-neko-url-trigger .
       - run: docker build -t subshellgmbh/o-neko-url-trigger:latest .
       - run: docker tag subshellgmbh/o-neko-url-trigger:latest subshellgmbh/o-neko-url-trigger:$CIRCLE_TAG
       - run: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
