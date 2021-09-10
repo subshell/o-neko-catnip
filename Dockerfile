@@ -10,7 +10,6 @@ FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 ADD /o-neko-url-trigger /app/
-ADD /assets /app/assets/
 ADD /config/application-default.yaml /app/config/
 
 WORKDIR /app
