@@ -1,4 +1,9 @@
 oneko:
+  api:
+    baseUrl:
+    auth:
+      username:
+      password:
   server:
-    port: 8080
+    port: 80
   mode: production

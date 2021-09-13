@@ -8,10 +8,11 @@ import (
 
 func init() {
 	rootCmd.AddCommand(&cobra.Command{
-		Use: "server [flags]",
+		Use:   "server [flags]",
 		Short: "starts the O-Neko URL trigger server",
 		Run: func(cmd *cobra.Command, args []string) {
-			server.Start(config.Configuration())
+			triggerServer := server.New(config.Configuration())
+			triggerServer.Start()
 		},
 	})
 }

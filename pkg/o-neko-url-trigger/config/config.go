@@ -45,11 +45,23 @@ type Config struct {
 }
 
 type ONekoConfig struct {
+	Api    ApiConfig    `yaml:"api"`
 	Mode   Mode         `yaml:"mode"`
 	Server ServerConfig `yaml:"server"`
 }
 
+type ApiConfig struct {
+	BaseUrl string     `yaml:"baseUrl"`
+	Auth    AuthConfig `yaml:"auth"`
+}
+
+type AuthConfig struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
 type Mode string
+
 const (
 	DEVELOPMENT Mode = "development"
 	PRODUCTION  Mode = "production"

@@ -1,2 +1,4 @@
 oneko:
+  api:
+    baseUrl: https://oneko.subshell.cloud
   mode: development

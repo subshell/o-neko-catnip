@@ -6,31 +6,47 @@ import (
 	"fmt"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/logger"
+	"o-neko-url-trigger/pkg/o-neko-url-trigger/oneko"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 )
 
-func Start(c *config.Config) {
-	log := logger.New("server")
+type TriggerServer struct {
+	configuration *config.Config
+	log *zap.SugaredLogger
+	oneko *oneko.ONekoApi
+}
 
-	if c.ONeko.Mode == config.PRODUCTION {
+func New(c *config.Config) *TriggerServer {
+	return &TriggerServer{
+		log: logger.New("server"),
+		oneko: oneko.New(c),
+		configuration: c,
+	}
+}
+
+func (s *TriggerServer) Start() {
+
+	if s.configuration.ONeko.Mode == config.PRODUCTION {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
 		gin.SetMode(gin.DebugMode)
 	}
 
 	r := gin.New()
+	r.Use(ginzap.Ginzap(s.log.Desugar(), time.RFC3339, true))
+	r.Use(ginzap.RecoveryWithZap(s.log.Desugar(), true))
 
+	r.GET("/*path", s.handleAllRequests)
 
-	r.Use(ginzap.Ginzap(log.Desugar(), time.RFC3339, true))
-	r.Use(ginzap.RecoveryWithZap(log.Desugar(), true))
-
-	address := fmt.Sprintf(":%d", c.ONeko.Server.Port)
+	address := fmt.Sprintf(":%d", s.configuration.ONeko.Server.Port)
 	srv := &http.Server{
 		Addr:    address,
 		Handler: r,
@@ -45,10 +61,14 @@ func Start(c *config.Config) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Info("shutting down server")
+	s.log.Info("shutting down server")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("server forced to shutdown:", err)
 	}
+}
+
+func (s *TriggerServer) handleAllRequests(c *gin.Context) {
+	s.oneko.HandleRequest(c.Request.Host, c.Request.RequestURI)
 }
