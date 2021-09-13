@@ -3,6 +3,7 @@ module o-neko-url-trigger
 go 1.17
 
 require (
+	github.com/ReneKroon/ttlcache/v2 v2.8.0
 	github.com/gin-contrib/zap v0.0.1
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-resty/resty/v2 v2.6.0
@@ -38,6 +39,7 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
 	golang.org/x/text v0.3.5 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect

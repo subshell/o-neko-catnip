@@ -20,14 +20,14 @@ import (
 
 type TriggerServer struct {
 	configuration *config.Config
-	log *zap.SugaredLogger
-	oneko *oneko.ONekoApi
+	log           *zap.SugaredLogger
+	oneko         *oneko.ONekoApi
 }
 
 func New(c *config.Config) *TriggerServer {
 	return &TriggerServer{
-		log: logger.New("server"),
-		oneko: oneko.New(c),
+		log:           logger.New("server"),
+		oneko:         oneko.New(c),
 		configuration: c,
 	}
 }
@@ -44,6 +44,7 @@ func (s *TriggerServer) Start() {
 	r.Use(ginzap.Ginzap(s.log.Desugar(), time.RFC3339, true))
 	r.Use(ginzap.RecoveryWithZap(s.log.Desugar(), true))
 
+	r.LoadHTMLFiles("public/index.html.gotmpl")
 	r.GET("/*path", s.handleAllRequests)
 
 	address := fmt.Sprintf(":%d", s.configuration.ONeko.Server.Port)
@@ -70,5 +71,16 @@ func (s *TriggerServer) Start() {
 }
 
 func (s *TriggerServer) handleAllRequests(c *gin.Context) {
-	s.oneko.HandleRequest(c.Request.Host, c.Request.RequestURI)
+	project, version, err := s.oneko.HandleRequest(c.Request.Host, c.Request.RequestURI)
+	if err != nil {
+		c.HTML(http.StatusBadRequest, "index.html.gotmpl", gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.Header("oneko-url-trigger", fmt.Sprintf("%s%s", c.Request.Host, c.Request.RequestURI))
+	c.HTML(http.StatusOK, "index.html.gotmpl", gin.H{
+		"projectName": project.Name,
+		"versionName": version.Name,
+	})
 }
