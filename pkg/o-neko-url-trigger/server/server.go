@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func Start(c config.Config) {
+func Start(c *config.Config) {
 	log := logger.New("server")
 
 	if c.ONeko.Mode == config.PRODUCTION {

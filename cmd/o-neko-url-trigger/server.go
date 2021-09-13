@@ -13,7 +13,7 @@ func init() {
 		Use: "server [flags]",
 		Short: "starts the O-Neko URL trigger server",
 		Run: func(cmd *cobra.Command, args []string) {
-			server.Start(config.Configuration)
+			server.Start(config.Configuration())
 		},
 	}
 	rootCmd.AddCommand(serverCmd)

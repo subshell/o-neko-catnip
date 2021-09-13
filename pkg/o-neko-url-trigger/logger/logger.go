@@ -8,8 +8,12 @@ import (
 
 var rootLogger *zap.SugaredLogger
 
-func init() {
-	mode := config.Configuration.ONeko.Mode
+func setupRootLogger() {
+	if rootLogger != nil {
+		return
+	}
+
+	mode := config.Configuration().ONeko.Mode
 	var (
 		logger *zap.Logger
 		err    error
@@ -30,9 +34,10 @@ func init() {
 }
 
 func New(name string) *zap.SugaredLogger {
-	return rootLogger.Named(name)
+	return Root().Named(name)
 }
 
 func Root() *zap.SugaredLogger {
+	setupRootLogger()
 	return rootLogger
 }
