@@ -6,13 +6,16 @@ import (
 	"strings"
 )
 
-var Configuration Config
+var configuration *Config
 
-func init() {
-	Configuration = readInConfig()
+func Configuration() *Config {
+	if configuration == nil {
+		configuration = readInConfig()
+	}
+	return configuration
 }
 
-func readInConfig() Config {
+func readInConfig() *Config {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config/")
 	viper.AddConfigPath(".")
@@ -34,7 +37,7 @@ func readInConfig() Config {
 	if err := viper.Unmarshal(&readConfig); err != nil {
 		panic(fmt.Errorf("failed to parse config: %w \n", err))
 	}
-	return readConfig
+	return &readConfig
 }
 
 type Config struct {
