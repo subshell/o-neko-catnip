@@ -6,4 +6,4 @@ clean: go-clean
 build-and-docker: go-build-for-docker docker
 
 docker:
-	docker build -t docker.subshell.com/tools/o-neko-url-trigger .
+	docker build -t subshellgmbh/o-neko-url-trigger .

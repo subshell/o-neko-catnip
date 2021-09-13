@@ -20,7 +20,7 @@ jobs:
             - "/go/pkg/mod"
       - run:
           name: Build the application
-          command: make go-build
+          command: make go-build-for-docker
       - run: mkdir ./circle-artifacts && cp ./o-neko-url-trigger ./circle-artifacts/
       - save_cache:
           key: oneko-url-trigger-artifacts-{{ .Environment.CIRCLE_SHA1 }}
