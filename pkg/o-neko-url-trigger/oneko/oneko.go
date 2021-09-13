@@ -64,8 +64,8 @@ func getProjectVersionMatchingUrl(versions []ProjectVersion, url string) *Projec
 	urlWithoutProtocol := r.ReplaceAllString(url, "")
 	for _, version := range versions {
 		for _, url := range version.Urls {
-			versoinUrlWithoutProtocol := r.ReplaceAllString(url, "")
-			if strings.HasPrefix(urlWithoutProtocol, versoinUrlWithoutProtocol) {
+			versionUrlWithoutProtocol := r.ReplaceAllString(url, "")
+			if strings.HasPrefix(urlWithoutProtocol, versionUrlWithoutProtocol) {
 				return &version
 			}
 		}
