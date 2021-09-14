@@ -17,9 +17,15 @@ type ONekoApi struct {
 }
 
 func New(configuration *config.Config) *ONekoApi {
+	client, err := buildClient(configuration)
+	if err != nil {
+		panic(err)
+	}
+
 	requestCache := ttlcache.NewCache()
+
 	api := &ONekoApi{
-		client: buildClient(configuration),
+		client: client,
 		log:    logger.New("oneko"),
 		cache:  requestCache,
 	}

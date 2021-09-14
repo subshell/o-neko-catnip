@@ -1,5 +1,5 @@
 function checkIfStillOneko() {
-	fetch(location.href)
+	fetch(location.href, {method: 'HEAD'})
 		.then(response => {
 			if (response.headers.has("oneko-url-trigger")) {
 				// still oneko

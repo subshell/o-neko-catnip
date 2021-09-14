@@ -23,18 +23,19 @@ type TriggerServer struct {
 	configuration *config.Config
 	log           *zap.SugaredLogger
 	oneko         *oneko.ONekoApi
+	appVersion    string
 }
 
-func New(c *config.Config) *TriggerServer {
+func New(c *config.Config, appVersion string) *TriggerServer {
 	return &TriggerServer{
 		log:           logger.New("server"),
 		oneko:         oneko.New(c),
 		configuration: c,
+		appVersion: appVersion,
 	}
 }
 
 func (s *TriggerServer) Start() {
-
 	if s.configuration.ONeko.Mode == config.PRODUCTION {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
@@ -42,13 +43,21 @@ func (s *TriggerServer) Start() {
 	}
 
 	r := gin.New()
+
+	// logging
 	r.Use(ginzap.Ginzap(s.log.Desugar(), time.RFC3339, true))
 	r.Use(ginzap.RecoveryWithZap(s.log.Desugar(), true))
 
+	// routes
 	r.LoadHTMLGlob("public/*.gotmpl")
 	r.Static("/static/", "public/static/")
-	r.GET("/", s.handleAllRequests)
-	r.GET("/:any", s.handleAllRequests)
+	r.GET("/metrics", prometheusHandler())
+	r.GET("/", s.handleGetRequests)
+	r.GET("/:any", s.handleGetRequests)
+	r.HEAD("/", s.handleHeadRequests)
+	r.HEAD("/:any", s.handleHeadRequests)
+
+	// custom template functions
 	r.SetFuncMap(template.FuncMap{
 		"formatAsDate": formatAsDate,
 	})
@@ -77,11 +86,16 @@ func (s *TriggerServer) Start() {
 }
 
 type templateParameters struct {
-	Project        oneko.Project
+	Project oneko.Project
 	Version oneko.ProjectVersion
 }
 
-func (s *TriggerServer) handleAllRequests(c *gin.Context) {
+func (s *TriggerServer) handleHeadRequests(c *gin.Context) {
+	c.Header("oneko-url-trigger", s.appVersion)
+	c.Status(http.StatusOK)
+}
+
+func (s *TriggerServer) handleGetRequests(c *gin.Context) {
 	project, version, err := s.oneko.HandleRequest(c.Request.Host, c.Request.RequestURI)
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "error.html.gotmpl", gin.H{
@@ -89,7 +103,7 @@ func (s *TriggerServer) handleAllRequests(c *gin.Context) {
 		})
 		return
 	}
-	c.Header("oneko-url-trigger", fmt.Sprintf("%s%s", c.Request.Host, c.Request.RequestURI))
+	c.Header("oneko-url-trigger", s.appVersion)
 	c.HTML(http.StatusOK, "index.html.gotmpl", templateParameters{
 		Project: *project,
 		Version: *version,

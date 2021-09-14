@@ -1,7 +1,7 @@
 GO         ?= go
 LINTER     ?= golangci-lint
 GIT_DIRTY  := $(shell git diff --quiet || echo '-dirty')
-VERSION	   := $(shell [ -z $(git tag --points-at HEAD) ] && echo "unknown" || echo $(git tag --points-at HEAD))
+VERSION	   := $(shell [ -z $(git tag --points-at HEAD) ] || echo $(git tag --points-at HEAD))
 COMMIT     := $(shell git rev-parse --short HEAD)$(GIT_DIRTY)
 LDFLAGS    += -ldflags '-extldflags "-static" -s -w -X=main.GitTag=$(VERSION) -X=main.GitCommit=$(COMMIT)' # -s -w reduces binary size by removing some debug information
 BUILDFLAGS += -installsuffix cgo --tags release
