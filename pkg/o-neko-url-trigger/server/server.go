@@ -7,6 +7,7 @@ import (
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"html/template"
 	"log"
 	"net/http"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
@@ -44,8 +45,13 @@ func (s *TriggerServer) Start() {
 	r.Use(ginzap.Ginzap(s.log.Desugar(), time.RFC3339, true))
 	r.Use(ginzap.RecoveryWithZap(s.log.Desugar(), true))
 
-	r.LoadHTMLFiles("public/index.html.gotmpl")
-	r.GET("/*path", s.handleAllRequests)
+	r.LoadHTMLGlob("public/*.gotmpl")
+	r.Static("/static/", "public/static/")
+	r.GET("/", s.handleAllRequests)
+	r.GET("/:any", s.handleAllRequests)
+	r.SetFuncMap(template.FuncMap{
+		"formatAsDate": formatAsDate,
+	})
 
 	address := fmt.Sprintf(":%d", s.configuration.ONeko.Server.Port)
 	srv := &http.Server{
@@ -70,17 +76,26 @@ func (s *TriggerServer) Start() {
 	}
 }
 
+type templateParameters struct {
+	Project        oneko.Project
+	Version oneko.ProjectVersion
+}
+
 func (s *TriggerServer) handleAllRequests(c *gin.Context) {
 	project, version, err := s.oneko.HandleRequest(c.Request.Host, c.Request.RequestURI)
 	if err != nil {
-		c.HTML(http.StatusBadRequest, "index.html.gotmpl", gin.H{
+		c.HTML(http.StatusBadRequest, "error.html.gotmpl", gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 	c.Header("oneko-url-trigger", fmt.Sprintf("%s%s", c.Request.Host, c.Request.RequestURI))
-	c.HTML(http.StatusOK, "index.html.gotmpl", gin.H{
-		"projectName": project.Name,
-		"versionName": version.Name,
+	c.HTML(http.StatusOK, "index.html.gotmpl", templateParameters{
+		Project: *project,
+		Version: *version,
 	})
+}
+
+func formatAsDate(t time.Time) string {
+	return t.Format(time.RFC1123)
 }

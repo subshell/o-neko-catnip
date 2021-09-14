@@ -1,24 +1,12 @@
 <!doctype html>
 <html lang="en">
 <head>
-	<title>{{ .projectName }}: {{ .versionName }}</title>
+	<title>Starting {{ .Project.Name }} {{ .Version.Name }}...</title>
+	<link rel="stylesheet" href="./static/style.css">
 </head>
-<body onload="checkIfStillOneko()">
-	<h1>Deploying {{ .projectName }}: {{ .versionName }}</h1>
-	<script>
-		function checkIfStillOneko() {
-			fetch(location.href)
-				.then(response => {
-					if (response.headers.has("oneko-url-trigger")) {
-						// still oneko
-						console.log("still o-neko")
-						setTimeout(() => checkIfStillOneko(), 1000)
-					} else {
-						console.log("not o-neko anymore. reloading")
-						location.reload();
-					}
-				});
-		}
-	</script>
+<body>
+	<h1>Deploying {{ .Project.Name }} {{ .Version.Name }}</h1>
+
+	<script src="./static/script.js"></script>
 </body>
 </html>

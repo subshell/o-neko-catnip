@@ -51,8 +51,9 @@ type ONekoConfig struct {
 }
 
 type ApiConfig struct {
-	BaseUrl string     `yaml:"baseUrl"`
-	Auth    AuthConfig `yaml:"auth"`
+	BaseUrl                string     `yaml:"baseUrl"`
+	Auth                   AuthConfig `yaml:"auth"`
+	CacheRequestsInMinutes int        `yaml:"cacheRequestsInMinutes"`
 }
 
 type AuthConfig struct {

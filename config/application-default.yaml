@@ -4,6 +4,7 @@ oneko:
     auth:
       username:
       password:
+    cacheRequestsInMinutes: 5
   server:
-    port: 80
+    port: 8080
   mode: production
