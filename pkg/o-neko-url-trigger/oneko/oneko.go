@@ -1,9 +1,12 @@
 package oneko
 
 import (
+	"context"
 	"fmt"
 	"github.com/ReneKroon/ttlcache/v2"
 	"github.com/go-resty/resty/v2"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.uber.org/zap"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/logger"
@@ -11,12 +14,15 @@ import (
 )
 
 type ONekoApi struct {
-	client *resty.Client
-	log    *zap.SugaredLogger
-	cache  *ttlcache.Cache
+	client          *resty.Client
+	log             *zap.SugaredLogger
+	cache           *ttlcache.Cache
+	wakeupCounter   prometheus.Counter
+	errorCounter    prometheus.Counter
+	apiCallDuration prometheus.Histogram
 }
 
-func New(configuration *config.Config) *ONekoApi {
+func New(configuration *config.Config, ctx context.Context) *ONekoApi {
 	client, err := buildClient(configuration)
 	if err != nil {
 		panic(err)
@@ -28,13 +34,42 @@ func New(configuration *config.Config) *ONekoApi {
 		client: client,
 		log:    logger.New("oneko"),
 		cache:  requestCache,
+		wakeupCounter: promauto.NewCounter(prometheus.CounterOpts{
+			Name: "oneko_url_trigger_wakeups_sum",
+			Help: "The number of wakeup API requests done.",
+			ConstLabels: map[string]string{
+				"success": "true",
+			},
+		}),
+		errorCounter: promauto.NewCounter(prometheus.CounterOpts{
+			Name: "oneko_url_trigger_wakeups_sum",
+			Help: "The number of wakeup API requests done.",
+			ConstLabels: map[string]string{
+				"success": "false",
+			},
+		}),
+		apiCallDuration: promauto.NewHistogram(prometheus.HistogramOpts{
+			Name:    "oneko_url_trigger_api_call_duration_seconds",
+			Help:    "Wakeup API call duration.",
+			Buckets: prometheus.LinearBuckets(0.01, 0.01, 10),
+		}),
 	}
+
+	promauto.NewGaugeFunc(prometheus.GaugeOpts{
+		Name:        "oneko_url_trigger_cache_size",
+		Help:        "The number of cached API responses",
+	}, func() float64 {
+		return float64(len(requestCache.GetKeys()))
+	})
 
 	requestCache.SetTTL(time.Duration(configuration.ONeko.Api.CacheRequestsInMinutes) * time.Minute)
 	requestCache.SkipTTLExtensionOnHit(true)
 	requestCache.SetLoaderFunction(func(key string) (data interface{}, ttl time.Duration, err error) {
 		return api.loadIntoCache(key)
 	})
+
+	startPingMonitor(api, ctx)
+
 	return api
 }
 
@@ -85,8 +120,8 @@ func (o *ONekoApi) loadIntoCache(cacheKey string) (*cacheEntry, time.Duration, e
 			}
 			return entry, time.Duration(0), nil
 		} else {
-			o.log.Infow("no deployment matching version", "deploymentUrl", cacheKey)
-			return nil, time.Duration(0), fmt.Errorf("no matching deployment found")
+			o.log.Infow("no version matching url found", "deploymentUrl", cacheKey)
+			return nil, time.Duration(0), fmt.Errorf("no version matches the current URL")
 		}
 	}
 }
@@ -97,7 +132,23 @@ func (o *ONekoApi) wakeupDeployment(deploymentUrl string) (*Project, error) {
 		SetResult(&Project{}).
 		Post("/api/project/deploy/url")
 	if err != nil {
+		o.errorCounter.Inc()
 		return nil, err
+	} else if response.IsError() {
+		o.errorCounter.Inc()
+		return nil, fmt.Errorf("encountered an error calling O-Neko API: %s (%d)", response.Status(), response.StatusCode())
 	}
+	o.wakeupCounter.Inc()
 	return response.Result().(*Project), nil
+}
+
+func (o *ONekoApi) ping() error {
+	response, err := o.client.R().
+		Get("/api/session")
+	if err != nil {
+		return err
+	} else if response.IsError() {
+		return fmt.Errorf("encountered an error calling O-Neko API: %s (%d)", response.Status(), response.StatusCode())
+	}
+	return nil
 }

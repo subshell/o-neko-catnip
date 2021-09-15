@@ -26,16 +26,18 @@ type TriggerServer struct {
 	appVersion    string
 }
 
-func New(c *config.Config, appVersion string) *TriggerServer {
+func New(c *config.Config, context context.Context, appVersion string) *TriggerServer {
 	return &TriggerServer{
 		log:           logger.New("server"),
-		oneko:         oneko.New(c),
+		oneko:         oneko.New(c, context),
 		configuration: c,
-		appVersion: appVersion,
+		appVersion:    appVersion,
 	}
 }
 
 func (s *TriggerServer) Start() {
+	startMonitoringUptime()
+
 	if s.configuration.ONeko.Mode == config.PRODUCTION {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
@@ -48,19 +50,20 @@ func (s *TriggerServer) Start() {
 	r.Use(ginzap.Ginzap(s.log.Desugar(), time.RFC3339, true))
 	r.Use(ginzap.RecoveryWithZap(s.log.Desugar(), true))
 
+	// custom template functions
+	r.SetFuncMap(template.FuncMap{
+		"formatAsDate": formatAsDate,
+	})
+
 	// routes
 	r.LoadHTMLGlob("public/*.gotmpl")
 	r.Static("/static/", "public/static/")
+	r.StaticFile("/favicon.ico", "public/static/favicon.ico")
 	r.GET("/metrics", prometheusHandler())
 	r.GET("/", s.handleGetRequests)
 	r.GET("/:any", s.handleGetRequests)
 	r.HEAD("/", s.handleHeadRequests)
 	r.HEAD("/:any", s.handleHeadRequests)
-
-	// custom template functions
-	r.SetFuncMap(template.FuncMap{
-		"formatAsDate": formatAsDate,
-	})
 
 	address := fmt.Sprintf(":%d", s.configuration.ONeko.Server.Port)
 	srv := &http.Server{
@@ -88,6 +91,7 @@ func (s *TriggerServer) Start() {
 type templateParameters struct {
 	Project oneko.Project
 	Version oneko.ProjectVersion
+	BaseUrl string
 }
 
 func (s *TriggerServer) handleHeadRequests(c *gin.Context) {
@@ -97,17 +101,19 @@ func (s *TriggerServer) handleHeadRequests(c *gin.Context) {
 
 func (s *TriggerServer) handleGetRequests(c *gin.Context) {
 	project, version, err := s.oneko.HandleRequest(c.Request.Host, c.Request.RequestURI)
+	c.Header("oneko-url-trigger", s.appVersion)
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "error.html.gotmpl", gin.H{
-			"error": err.Error(),
+			"error":   err.Error(),
+			"BaseUrl": s.configuration.ONeko.Api.BaseUrl,
 		})
-		return
+	} else {
+		c.HTML(http.StatusOK, "index.html.gotmpl", templateParameters{
+			Project: *project,
+			Version: *version,
+			BaseUrl: s.configuration.ONeko.Api.BaseUrl,
+		})
 	}
-	c.Header("oneko-url-trigger", s.appVersion)
-	c.HTML(http.StatusOK, "index.html.gotmpl", templateParameters{
-		Project: *project,
-		Version: *version,
-	})
 }
 
 func formatAsDate(t time.Time) string {
