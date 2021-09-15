@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.uber.org/zap"
+	"net/http"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/logger"
 	"time"
@@ -56,8 +57,8 @@ func New(configuration *config.Config, ctx context.Context) *ONekoApi {
 	}
 
 	promauto.NewGaugeFunc(prometheus.GaugeOpts{
-		Name:        "oneko_url_trigger_cache_size",
-		Help:        "The number of cached API responses",
+		Name: "oneko_url_trigger_cache_size",
+		Help: "The number of cached API responses",
 	}, func() float64 {
 		return float64(len(requestCache.GetKeys()))
 	})
@@ -136,7 +137,11 @@ func (o *ONekoApi) wakeupDeployment(deploymentUrl string) (*Project, error) {
 		return nil, err
 	} else if response.IsError() {
 		o.errorCounter.Inc()
-		return nil, fmt.Errorf("encountered an error calling O-Neko API: %s (%d)", response.Status(), response.StatusCode())
+		if response.StatusCode() == http.StatusNotFound {
+			return nil, fmt.Errorf("no version matching this url found")
+		} else {
+			return nil, fmt.Errorf("encountered an error calling O-Neko API: %s (%d)", response.Status(), response.StatusCode())
+		}
 	}
 	o.wakeupCounter.Inc()
 	return response.Result().(*Project), nil
