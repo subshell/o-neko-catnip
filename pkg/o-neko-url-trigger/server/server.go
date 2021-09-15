@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/logger"
+	"o-neko-url-trigger/pkg/o-neko-url-trigger/metrics"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/oneko"
 	"os"
 	"os/signal"
@@ -36,7 +37,7 @@ func New(c *config.Config, context context.Context, appVersion string) *TriggerS
 }
 
 func (s *TriggerServer) Start() {
-	startMonitoringUptime()
+	metrics.RegisterCommonMetrics(s.appVersion)
 
 	if s.configuration.ONeko.Mode == config.PRODUCTION {
 		gin.SetMode(gin.ReleaseMode)
@@ -59,7 +60,7 @@ func (s *TriggerServer) Start() {
 	r.LoadHTMLGlob("public/*.gotmpl")
 	r.Static("/static/", "public/static/")
 	r.StaticFile("/favicon.ico", "public/static/favicon.ico")
-	r.GET("/metrics", prometheusHandler())
+	r.GET("/metrics", metrics.PrometheusHandler())
 	r.GET("/", s.handleGetRequests)
 	r.GET("/:any", s.handleGetRequests)
 	r.HEAD("/", s.handleHeadRequests)
