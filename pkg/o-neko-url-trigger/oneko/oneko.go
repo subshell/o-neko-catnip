@@ -128,6 +128,8 @@ func (o *ONekoApi) loadIntoCache(cacheKey string) (*cacheEntry, time.Duration, e
 }
 
 func (o *ONekoApi) wakeupDeployment(deploymentUrl string) (*Project, error) {
+	timer := prometheus.NewTimer(o.apiCallDuration)
+	defer timer.ObserveDuration()
 	response, err := o.client.R().
 		SetBody(deploymentUrl).
 		SetResult(&Project{}).
