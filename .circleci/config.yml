@@ -73,8 +73,8 @@ workflows:
           context:
             - dockerhub
           filters:
-            #branches:
-            #  only: master
+            branches:
+              only: master
             tags:
               only: /.*/
       - release:
