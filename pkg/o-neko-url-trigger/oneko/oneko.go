@@ -3,15 +3,16 @@ package oneko
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
+	"o-neko-url-trigger/pkg/o-neko-url-trigger/logger"
+	"time"
+
 	"github.com/ReneKroon/ttlcache/v2"
 	"github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.uber.org/zap"
-	"net/http"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/logger"
-	"time"
 )
 
 type ONekoApi struct {

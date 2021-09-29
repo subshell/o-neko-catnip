@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	ginzap "github.com/gin-contrib/zap"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"html/template"
 	"log"
 	"net/http"
@@ -18,6 +15,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type TriggerServer struct {

@@ -8,3 +8,5 @@ oneko:
   server:
     port: 8080
   mode: production
+  logging:
+    level: 

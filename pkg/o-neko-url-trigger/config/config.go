@@ -2,8 +2,9 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 var configuration *Config
@@ -45,9 +46,14 @@ type Config struct {
 }
 
 type ONekoConfig struct {
-	Api    ApiConfig    `yaml:"api"`
-	Mode   Mode         `yaml:"mode"`
-	Server ServerConfig `yaml:"server"`
+	Api     ApiConfig     `yaml:"api"`
+	Mode    Mode          `yaml:"mode"`
+	Server  ServerConfig  `yaml:"server"`
+	Logging LoggingConfig `yaml:"logging"`
+}
+
+type LoggingConfig struct {
+	Level LogLevel `yaml:"level"`
 }
 
 type ApiConfig struct {
@@ -66,6 +72,15 @@ type Mode string
 const (
 	DEVELOPMENT Mode = "development"
 	PRODUCTION  Mode = "production"
+)
+
+type LogLevel string
+
+const (
+	DEBUG LogLevel = "debug"
+	INFO  LogLevel = "info"
+	WARN  LogLevel = "warn"
+	ERROR LogLevel = "error"
 )
 
 type ServerConfig struct {
