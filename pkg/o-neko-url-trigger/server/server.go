@@ -75,7 +75,7 @@ func (s *TriggerServer) Start() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
-			log.Fatal("listen: %s\n", err)
+			log.Fatalf("listen: %s\n", err)
 		}
 	}()
 

@@ -16,6 +16,11 @@ func Configuration() *Config {
 	return configuration
 }
 
+// Use this to set a configuration in tests
+func OverrideConfiguration(c *Config) {
+	configuration = c
+}
+
 func readInConfig() *Config {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("./config/")

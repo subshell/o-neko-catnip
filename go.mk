@@ -1,5 +1,6 @@
 GO         ?= go
 LINTER     ?= golangci-lint
+GO_TESTSUM ?= gotestsum
 GIT_DIRTY  := $(shell git diff --quiet || echo '-dirty')
 VERSION	   := $(shell [ -z $(git tag --points-at HEAD) ] || echo $(git tag --points-at HEAD))
 COMMIT     := $(shell git rev-parse --short HEAD)$(GIT_DIRTY)
@@ -22,6 +23,9 @@ run:
 
 test:
 	$(GO) test -v ./pkg/**/* -coverprofile cover.out
+
+test-ci:
+	$(GO_TESTSUM) --format testname --junitfile test_results.xml -- -v ./pkg/**/* -coverprofile cover.out
 
 lint:
 	$(GO) mod verify

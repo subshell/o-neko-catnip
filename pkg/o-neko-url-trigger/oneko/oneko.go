@@ -37,14 +37,14 @@ func New(configuration *config.Config, ctx context.Context) *ONekoApi {
 		log:    logger.New("oneko"),
 		cache:  requestCache,
 		wakeupCounter: promauto.NewCounter(prometheus.CounterOpts{
-			Name: "oneko_url_trigger_wakeups_sum",
+			Name: "oneko_url_trigger_wakeups_total",
 			Help: "The number of wakeup API requests done.",
 			ConstLabels: map[string]string{
 				"success": "true",
 			},
 		}),
 		errorCounter: promauto.NewCounter(prometheus.CounterOpts{
-			Name: "oneko_url_trigger_wakeups_sum",
+			Name: "oneko_url_trigger_wakeups_total",
 			Help: "The number of wakeup API requests done.",
 			ConstLabels: map[string]string{
 				"success": "false",
