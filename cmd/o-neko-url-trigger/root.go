@@ -20,7 +20,7 @@ func init() {
 	if len(GitTag) == 0 && len(GitCommit) == 0 {
 		commandVersion = "dev"
 	} else if len(GitTag) == 0 {
-		commandVersion = fmt.Sprintf("%s", GitCommit)
+		commandVersion = GitCommit
 	} else {
 		commandVersion = fmt.Sprintf("%s (%s)", GitTag, GitCommit)
 	}

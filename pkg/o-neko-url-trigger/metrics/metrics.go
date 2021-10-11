@@ -26,7 +26,7 @@ func startMonitoringUptime() {
 		Name: "oneko_url_trigger_uptime_duration_seconds",
 		Help: "The uptime of the application",
 	}, func() float64 {
-		return time.Now().Sub(startTime).Seconds()
+		return time.Since(startTime).Seconds()
 	})
 }
 

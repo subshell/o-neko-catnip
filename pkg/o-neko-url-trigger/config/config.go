@@ -31,9 +31,11 @@ func readInConfig() *Config {
 	}
 
 	viper.SetConfigName("application.yaml")
+
 	if err := viper.MergeInConfig(); err != nil {
-		// maybe we don't need this
-		// fmt.Println()fmt.Errorf("failed to read in config: %w \n", err)
+		if _, isConfigFileNotFoundError := err.(viper.ConfigFileNotFoundError); !isConfigFileNotFoundError {
+			panic(fmt.Errorf("failed to read in config file: %w \n", err))
+		}
 	}
 
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))

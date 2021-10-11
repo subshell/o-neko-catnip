@@ -11,9 +11,9 @@ BUILD_PATH ?= $(shell pwd)
 CMD = $(BUILD_PATH)/o-neko-url-trigger
 CMD_SRC = cmd/o-neko-url-trigger/*.go
 
-all: build lint
+all: test lint build
 
-.PHONY: build test lint clean build
+.PHONY: build test test-ci lint lint-ci clean prepare build-for-docker
 
 clean:
 	rm -f $(CMD)
@@ -33,7 +33,7 @@ lint:
 
 lint-ci:
 	$(GO) mod verify
-	$(LINTER) run -v --out-format=junit-xml --issues-exit-code=0 > linter_results.xml
+	$(LINTER) run -v --out-format=junit-xml > linter_results.xml
 
 prepare:
 	$(GO) mod download
