@@ -53,7 +53,7 @@ func New(configuration *config.Config, ctx context.Context) *ONekoApi {
 		apiCallDuration: promauto.NewHistogram(prometheus.HistogramOpts{
 			Name:    "oneko_url_trigger_api_call_duration_seconds",
 			Help:    "Wakeup API call duration.",
-			Buckets: prometheus.LinearBuckets(0.01, 0.01, 10),
+			Buckets: prometheus.DefBuckets,
 		}),
 	}
 

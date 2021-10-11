@@ -34,7 +34,7 @@ func startPingMonitor(api *ONekoApi, ctx context.Context) {
 	onekoPingDuration := promauto.NewHistogram(prometheus.HistogramOpts{
 		Name:    "oneko_url_trigger_api_ping_duration_seconds",
 		Help:    "Ping duration to the O-Neko base application.",
-		Buckets: prometheus.LinearBuckets(0.01, 0.01, 10),
+		Buckets: prometheus.DefBuckets,
 	})
 	onekoConnected := promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "oneko_url_trigger_api_connected",

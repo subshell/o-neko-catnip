@@ -22,7 +22,7 @@ func RegisterCommonMetrics(appVersion string) {
 
 func startMonitoringUptime() {
 	startTime := time.Now()
-	promauto.NewCounterFunc(prometheus.CounterOpts{
+	promauto.NewGaugeFunc(prometheus.GaugeOpts{
 		Name: "oneko_url_trigger_uptime_duration_seconds",
 		Help: "The uptime of the application",
 	}, func() float64 {

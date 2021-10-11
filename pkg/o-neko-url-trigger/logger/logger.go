@@ -41,7 +41,7 @@ func createLogger(config zap.Config, logLevelString string) (*zap.Logger, error)
 	if logLevelString != "" {
 		levelRef := zap.NewAtomicLevel().Level()
 		logLevel := &levelRef
-		logLevel.UnmarshalText([]byte(logLevelString))
+		_ = logLevel.UnmarshalText([]byte(logLevelString))
 		config.Level = zap.NewAtomicLevelAt(*logLevel)
 	}
 	return config.Build()

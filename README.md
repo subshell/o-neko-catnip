@@ -50,6 +50,11 @@ credentials!
 The environment variables have the same names as the properties in the YAML file but capitalized with underscores as a separator, e.g. `ONEKO_API_AUTH_PASSWORD`
 or `ONEKO_API_BASEURL`.
 
+## Limits
+
+* This tool will only trigger wake-ups of deployments when receiving GET requests. Other request types will not result in a wake-up.
+* This tool will only wake up deployments once every `cacheRequestsInMinutes` minutes (see configuration)
+
 ## Metrics
 
 Application metrics are available at the `/metrics` endpoint in the Prometheus format.
@@ -58,9 +63,18 @@ Application metrics are available at the `/metrics` endpoint in the Prometheus f
 
 Ideally you're able to deploy this application to Kubernetes and have a running O-Neko test instance at hand to connect this tool to.
 
-### Required Tools
+### Tools
+
+To build this tool some tooling is required. Other tools might be interesting but are optional and mainly used in CI.
+
+#### Required
 
 * Go >=1.17
 * Docker
 * Make
-* UPX
+* [UPX](https://upx.github.io)
+
+#### Optional
+
+* [gotestsum](https://github.com/gotestyourself/gotestsum): We use it to run our tests in CI
+* [golangci-lint](https://github.com/golangci/golangci-lint): Used for linting
