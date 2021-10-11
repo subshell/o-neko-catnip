@@ -29,7 +29,11 @@ test-ci:
 
 lint:
 	$(GO) mod verify
-	$(LINTER) run -v --no-config --deadline=5m
+	$(LINTER) run -v
+
+lint-ci:
+	$(GO) mod verify
+	$(LINTER) run -v --out-format=junit-xml --issues-exit-code=0 > linter_results.xml
 
 prepare:
 	$(GO) mod download

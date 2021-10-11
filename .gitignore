@@ -14,6 +14,7 @@
 *.out
 
 test_results.xml
+linter_results.xml
 
 .idea
 *.iml

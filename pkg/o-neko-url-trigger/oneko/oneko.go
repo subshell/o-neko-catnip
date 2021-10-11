@@ -64,11 +64,8 @@ func New(configuration *config.Config, ctx context.Context) *ONekoApi {
 		return float64(len(requestCache.GetKeys()))
 	})
 
-	requestCache.SetTTL(time.Duration(configuration.ONeko.Api.CacheRequestsInMinutes) * time.Minute)
+	_ = requestCache.SetTTL(time.Duration(configuration.ONeko.Api.CacheRequestsInMinutes) * time.Minute)
 	requestCache.SkipTTLExtensionOnHit(true)
-	requestCache.SetLoaderFunction(func(key string) (data interface{}, ttl time.Duration, err error) {
-		return api.loadIntoCache(key)
-	})
 
 	startPingMonitor(api, ctx)
 
@@ -84,10 +81,8 @@ func (o *ONekoApi) HandleRequest(host, uri string) (*Project, *ProjectVersion, e
 		o.log.Errorw("failed to generate cache key", "deploymentUrl", deploymentUrl, "error", err)
 		return nil, nil, err
 	}
-	fromCache, err := o.cache.Get(cacheKey)
-	if err != nil && err != ttlcache.ErrNotFound {
-		return nil, nil, err
-	} else if err != nil {
+	fromCache, err := o.cache.GetByLoader(cacheKey, o.loadIntoCache)
+	if err != nil {
 		return nil, nil, err
 	} else if fromCache != nil {
 		o.log.Infow("serving from cache", "deploymentUrl", deploymentUrl, "cacheKey", cacheKey)
@@ -97,7 +92,7 @@ func (o *ONekoApi) HandleRequest(host, uri string) (*Project, *ProjectVersion, e
 	return nil, nil, fmt.Errorf("failed to handle request")
 }
 
-func (o *ONekoApi) loadIntoCache(cacheKey string) (*cacheEntry, time.Duration, error) {
+func (o *ONekoApi) loadIntoCache(cacheKey string) (interface{}, time.Duration, error) {
 	o.log.Infow("no cached entry found, calling o-neko api", "deploymentUrl", cacheKey)
 	project, err := o.wakeupDeployment(cacheKey)
 	if err != nil {

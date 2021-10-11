@@ -55,12 +55,13 @@ func startPingMonitor(api *ONekoApi, ctx context.Context) {
 		}
 		pingOneko()
 
-		t := time.Tick(5 * time.Second)
+		ticker := time.NewTicker(5 * time.Second)
 		for {
 			select {
-			case <-t:
+			case <-ticker.C:
 				pingOneko()
 			case <-ctx.Done():
+				ticker.Stop()
 				return
 			}
 		}

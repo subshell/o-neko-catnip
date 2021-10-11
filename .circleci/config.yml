@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: docker.subshell.com/builder/golang-builder:0.4.0
+      - image: docker.subshell.com/builder/golang-builder:0.5.0
         auth:
           username: $DOCKER_USERNAME
           password: $DOCKER_PASSWORD
@@ -23,6 +23,11 @@ jobs:
           command: make go-test-ci
       - store_test_results:
           path: ./test_results.xml
+      - run:
+          name: Lint
+          command: make go-lint-ci
+      - store_test_results:
+          path: ./linter_results.xml
       - run:
           name: Build the application
           command: make go-build-for-docker
@@ -64,7 +69,7 @@ jobs:
 
 workflows:
   version: 2
-  build:
+  build_and_test:
     jobs:
       - build:
           context:
