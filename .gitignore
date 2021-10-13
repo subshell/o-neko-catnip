@@ -13,6 +13,9 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+test_results.xml
+linter_results.xml
+
 .idea
 *.iml
 

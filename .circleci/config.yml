@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: docker.subshell.com/builder/golang-builder:0.3.0
+      - image: docker.subshell.com/builder/golang-builder:0.5.0
         auth:
           username: $DOCKER_USERNAME
           password: $DOCKER_PASSWORD
@@ -19,12 +19,23 @@ jobs:
           paths:
             - "/go/pkg/mod"
       - run:
+          name: Run tests
+          command: make go-test-ci
+      - store_test_results:
+          path: ./test_results.xml
+      - run:
+          name: Lint
+          command: make go-lint-ci
+      - store_test_results:
+          path: ./linter_results.xml
+      - run:
           name: Build the application
           command: make go-build-for-docker
       - run: mkdir ./circle-artifacts && cp ./o-neko-url-trigger ./circle-artifacts/
       - save_cache:
           key: oneko-url-trigger-artifacts-{{ .Environment.CIRCLE_SHA1 }}
-          paths: ./circle-artifacts/
+          paths:
+            - ./circle-artifacts/
       - store_artifacts:
           path: ./circle-artifacts/
 
@@ -58,7 +69,7 @@ jobs:
 
 workflows:
   version: 2
-  build:
+  build_and_test:
     jobs:
       - build:
           context:

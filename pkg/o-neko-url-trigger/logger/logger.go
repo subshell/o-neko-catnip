@@ -2,8 +2,9 @@ package logger
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
+
+	"go.uber.org/zap"
 )
 
 var rootLogger *zap.SugaredLogger
@@ -14,14 +15,17 @@ func setupRootLogger() {
 	}
 
 	mode := config.Configuration().ONeko.Mode
+	logLevelString := config.Configuration().ONeko.Logging.Level
+
 	var (
 		logger *zap.Logger
 		err    error
 	)
+
 	if mode == config.DEVELOPMENT {
-		logger, err = zap.NewDevelopment()
+		logger, err = createLogger(zap.NewDevelopmentConfig(), string(logLevelString))
 	} else if mode == config.PRODUCTION {
-		logger, err = zap.NewProduction()
+		logger, err = createLogger(zap.NewProductionConfig(), string(logLevelString))
 	} else {
 		logger = zap.NewNop()
 	}
@@ -31,6 +35,16 @@ func setupRootLogger() {
 	}
 
 	rootLogger = logger.Sugar()
+}
+
+func createLogger(config zap.Config, logLevelString string) (*zap.Logger, error) {
+	if logLevelString != "" {
+		levelRef := zap.NewAtomicLevel().Level()
+		logLevel := &levelRef
+		_ = logLevel.UnmarshalText([]byte(logLevelString))
+		config.Level = zap.NewAtomicLevelAt(*logLevel)
+	}
+	return config.Build()
 }
 
 func New(name string) *zap.SugaredLogger {

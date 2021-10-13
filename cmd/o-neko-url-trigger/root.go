@@ -11,11 +11,19 @@ import (
 var log = logger.New("o-neko")
 var rootCmd *cobra.Command
 
-var GitCommit = "dev"
-var GitTag = "dev"
+// GitCommit and GitTag are set during compilation
+var GitCommit = ""
+var GitTag = ""
 
+var commandVersion string
 func init() {
-	commandVersion := fmt.Sprintf("%s (git commit %s)", GitTag, GitCommit)
+	if len(GitTag) == 0 && len(GitCommit) == 0 {
+		commandVersion = "dev"
+	} else if len(GitTag) == 0 {
+		commandVersion = GitCommit
+	} else {
+		commandVersion = fmt.Sprintf("%s (%s)", GitTag, GitCommit)
+	}
 	rootCmd = &cobra.Command{
 		Use:          "o-neko-url-trigger [flags]",
 		Short:        "This tool starts O-Neko deployments by its URL when used as a default HTTP backend.",
@@ -32,4 +40,8 @@ func main() {
 		log.Error(err, "command failed")
 		os.Exit(1)
 	}
+}
+
+func GetVersion() string {
+	return commandVersion
 }

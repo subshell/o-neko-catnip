@@ -1,7 +1,8 @@
 GO         ?= go
 LINTER     ?= golangci-lint
+GO_TESTSUM ?= gotestsum
 GIT_DIRTY  := $(shell git diff --quiet || echo '-dirty')
-VERSION	   := $(shell [ -z $(git tag --points-at HEAD) ] && echo "unknown" || echo $(git tag --points-at HEAD))
+VERSION	   := $(shell [ -z $(git tag --points-at HEAD) ] || echo $(git tag --points-at HEAD))
 COMMIT     := $(shell git rev-parse --short HEAD)$(GIT_DIRTY)
 LDFLAGS    += -ldflags '-extldflags "-static" -s -w -X=main.GitTag=$(VERSION) -X=main.GitCommit=$(COMMIT)' # -s -w reduces binary size by removing some debug information
 BUILDFLAGS += -installsuffix cgo --tags release
@@ -10,9 +11,9 @@ BUILD_PATH ?= $(shell pwd)
 CMD = $(BUILD_PATH)/o-neko-url-trigger
 CMD_SRC = cmd/o-neko-url-trigger/*.go
 
-all: build lint
+all: test lint build
 
-.PHONY: build test lint clean build
+.PHONY: build test test-ci lint lint-ci clean prepare build-for-docker
 
 clean:
 	rm -f $(CMD)
@@ -23,9 +24,16 @@ run:
 test:
 	$(GO) test -v ./pkg/**/* -coverprofile cover.out
 
+test-ci:
+	$(GO_TESTSUM) --format testname --junitfile test_results.xml -- -v ./pkg/**/* -coverprofile cover.out
+
 lint:
 	$(GO) mod verify
-	$(LINTER) run -v --no-config --deadline=5m
+	$(LINTER) run -v
+
+lint-ci:
+	$(GO) mod verify
+	$(LINTER) run -v --out-format=junit-xml > linter_results.xml
 
 prepare:
 	$(GO) mod download

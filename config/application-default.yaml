@@ -1,4 +1,12 @@
 oneko:
+  api:
+    baseUrl:
+    auth:
+      username:
+      password:
+    cacheRequestsInMinutes: 5
   server:
     port: 8080
   mode: production
+  logging:
+    level: 
