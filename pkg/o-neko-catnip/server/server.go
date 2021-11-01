@@ -7,10 +7,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/logger"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/metrics"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/oneko"
+	"o-neko-catnip/pkg/o-neko-catnip/config"
+	"o-neko-catnip/pkg/o-neko-catnip/logger"
+	"o-neko-catnip/pkg/o-neko-catnip/metrics"
+	"o-neko-catnip/pkg/o-neko-catnip/oneko"
 	"os"
 	"os/signal"
 	"syscall"
@@ -97,13 +97,13 @@ type templateParameters struct {
 }
 
 func (s *TriggerServer) handleHeadRequests(c *gin.Context) {
-	c.Header("oneko-url-trigger", s.appVersion)
+	c.Header("oneko-catnip", s.appVersion)
 	c.Status(http.StatusOK)
 }
 
 func (s *TriggerServer) handleGetRequests(c *gin.Context) {
 	project, version, err := s.oneko.HandleRequest(c.Request.Host, c.Request.RequestURI)
-	c.Header("oneko-url-trigger", s.appVersion)
+	c.Header("oneko-catnip", s.appVersion)
 	if err != nil {
 		c.HTML(http.StatusBadRequest, "error.html.gotmpl", gin.H{
 			"error":   err.Error(),

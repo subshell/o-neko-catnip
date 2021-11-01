@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/logger"
+	"o-neko-catnip/pkg/o-neko-catnip/config"
+	"o-neko-catnip/pkg/o-neko-catnip/logger"
 	"time"
 
 	"github.com/ReneKroon/ttlcache/v2"

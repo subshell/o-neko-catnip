@@ -1,13 +1,13 @@
-# O-Neko URL Trigger
+# O-Neko Catnip
 
-[![CircleCI](https://circleci.com/gh/subshell/o-neko-url-trigger/tree/master.svg?style=svg)](https://circleci.com/gh/subshell/o-neko-url-trigger/tree/master)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/subshellgmbh/o-neko-url-trigger?color=2496ED&label=subshellgmbh%2Fo-neko-url-trigger&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/subshellgmbh/o-neko-url-trigger/tags)
+[![CircleCI](https://circleci.com/gh/subshell/o-neko-catnip/tree/master.svg?style=svg)](https://circleci.com/gh/subshell/o-neko-catnip/tree/master)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/subshellgmbh/o-neko-catnip?color=2496ED&label=subshellgmbh%2Fo-neko-catnip&logo=docker&logoColor=white&sort=semver)](https://hub.docker.com/r/subshellgmbh/o-neko-catnip/tags)
 
 This is an optional extension application for [O-Neko](https://github.com/subshell/o-neko/). Its purpose is to be used as a default backend / default ingress
 for stopped O-Neko deployments. It will then try to start the deployment with the URL it has been loaded with and will then redirect the user to the deployment
 once it started.
 
-[![O-Neko URL trigger](./docs/screenshot_small.png)](./docs/screenshot.png)
+[![O-Neko Catnip](./docs/screenshot_small.png)](./docs/screenshot.png)
 
 ## Why
 

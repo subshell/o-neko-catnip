@@ -1,4 +1,4 @@
-module o-neko-url-trigger
+module o-neko-catnip
 
 go 1.17
 
