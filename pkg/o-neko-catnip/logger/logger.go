@@ -2,7 +2,7 @@ package logger
 
 import (
 	"fmt"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
+	"o-neko-catnip/pkg/o-neko-catnip/config"
 
 	"go.uber.org/zap"
 )

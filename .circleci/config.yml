@@ -10,12 +10,12 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - oneko-url-trigger-go-mod-{{ checksum "go.sum" }}
+            - oneko-catnip-go-mod-{{ checksum "go.sum" }}
       - run:
           name: Install dependencies
           command: go mod download
       - save_cache:
-          key: oneko-url-trigger-go-mod-{{ checksum "go.sum" }}
+          key: oneko-catnip-go-mod-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
       - run:
@@ -31,9 +31,9 @@ jobs:
       - run:
           name: Build the application
           command: make go-build-for-docker
-      - run: mkdir ./circle-artifacts && cp ./o-neko-url-trigger ./circle-artifacts/
+      - run: mkdir ./circle-artifacts && cp ./o-neko-catnip ./circle-artifacts/
       - save_cache:
-          key: oneko-url-trigger-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+          key: oneko-catnip-artifacts-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - ./circle-artifacts/
       - store_artifacts:
@@ -46,11 +46,11 @@ jobs:
       - checkout
       - setup_remote_docker
       - restore_cache:
-          key: oneko-url-trigger-artifacts-{{ .Environment.CIRCLE_SHA1 }}
-      - run: cp ./circle-artifacts/o-neko-url-trigger .
-      - run: docker build -t subshellgmbh/o-neko-url-trigger:latest-dev .
+          key: oneko-catnip-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+      - run: cp ./circle-artifacts/o-neko-catnip .
+      - run: docker build -t subshellgmbh/o-neko-catnip:latest-dev .
       - run: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-      - run: docker push subshellgmbh/o-neko-url-trigger:latest-dev
+      - run: docker push subshellgmbh/o-neko-catnip:latest-dev
 
   release:
     docker:
@@ -59,13 +59,13 @@ jobs:
       - checkout
       - setup_remote_docker
       - restore_cache:
-          key: oneko-url-trigger-artifacts-{{ .Environment.CIRCLE_SHA1 }}
-      - run: cp ./circle-artifacts/o-neko-url-trigger .
-      - run: docker build -t subshellgmbh/o-neko-url-trigger:latest .
-      - run: docker tag subshellgmbh/o-neko-url-trigger:latest subshellgmbh/o-neko-url-trigger:$CIRCLE_TAG
+          key: oneko-catnip-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+      - run: cp ./circle-artifacts/o-neko-catnip .
+      - run: docker build -t subshellgmbh/o-neko-catnip:latest .
+      - run: docker tag subshellgmbh/o-neko-catnip:latest subshellgmbh/o-neko-catnip:$CIRCLE_TAG
       - run: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-      - run: docker push subshellgmbh/o-neko-url-trigger:latest
-      - run: docker push subshellgmbh/o-neko-url-trigger:$CIRCLE_TAG
+      - run: docker push subshellgmbh/o-neko-catnip:latest
+      - run: docker push subshellgmbh/o-neko-catnip:$CIRCLE_TAG
 
 workflows:
   version: 2

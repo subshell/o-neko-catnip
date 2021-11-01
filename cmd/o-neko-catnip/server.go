@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"github.com/spf13/cobra"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/server"
+	"o-neko-catnip/pkg/o-neko-catnip/config"
+	"o-neko-catnip/pkg/o-neko-catnip/server"
 )
 
 func init() {

@@ -8,8 +8,8 @@ LDFLAGS    += -ldflags '-extldflags "-static" -s -w -X=main.GitTag=$(VERSION) -X
 BUILDFLAGS += -installsuffix cgo --tags release
 
 BUILD_PATH ?= $(shell pwd)
-CMD = $(BUILD_PATH)/o-neko-url-trigger
-CMD_SRC = cmd/o-neko-url-trigger/*.go
+CMD = $(BUILD_PATH)/o-neko-catnip
+CMD_SRC = cmd/o-neko-catnip/*.go
 
 all: test lint build
 

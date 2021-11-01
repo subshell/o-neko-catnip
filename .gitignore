@@ -19,5 +19,5 @@ linter_results.xml
 .idea
 *.iml
 
-o-neko-url-trigger
-!*/o-neko-url-trigger/
+o-neko-catnip
+!*/o-neko-catnip/

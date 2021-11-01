@@ -9,10 +9,10 @@ FROM scratch
 # Import from builder.
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-ADD /o-neko-url-trigger /app/
+ADD /o-neko-catnip /app/
 ADD /config/application-default.yaml /app/config/
 ADD /public /app/public
 
 WORKDIR /app
 
-CMD ["/app/o-neko-url-trigger", "server"]
+CMD ["/app/o-neko-catnip", "server"]

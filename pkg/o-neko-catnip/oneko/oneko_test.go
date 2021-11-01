@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
+	"o-neko-catnip/pkg/o-neko-catnip/config"
 	"os"
 	"testing"
 	"time"

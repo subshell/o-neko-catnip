@@ -6,7 +6,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"o-neko-url-trigger/pkg/o-neko-url-trigger/config"
+	"o-neko-catnip/pkg/o-neko-catnip/config"
 	"regexp"
 	"strings"
 	"time"
