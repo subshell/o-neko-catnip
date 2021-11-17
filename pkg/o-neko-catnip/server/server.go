@@ -62,10 +62,17 @@ func (s *TriggerServer) Start() {
 	r.Static("/static/", "public/static/")
 	r.StaticFile("/favicon.ico", "public/static/favicon.ico")
 	r.GET("/metrics", metrics.PrometheusHandler())
-	r.GET("/", s.handleGetRequests)
-	r.GET("/:any", s.handleGetRequests)
+
+
+	// gin does not allow to use "/*any" because it would conflict with the routes above
+	// so we have to use three routes to get what we want
+	r.GET("/", s.handleGetRequests) // 1. root
+	r.GET("/:any", s.handleGetRequests) // 2. any one-segment-path
+	r.GET("/:any/*any", s.handleGetRequests) // 3. any multi-segment-path
+	// same for HEAD requests
 	r.HEAD("/", s.handleHeadRequests)
 	r.HEAD("/:any", s.handleHeadRequests)
+	r.HEAD("/:any/*any", s.handleHeadRequests)
 
 	address := fmt.Sprintf(":%d", s.configuration.ONeko.Server.Port)
 	srv := &http.Server{
