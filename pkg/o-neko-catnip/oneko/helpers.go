@@ -25,7 +25,7 @@ func buildClient(conf *config.Config) (*resty.Client, error) {
 		return nil, fmt.Errorf("API username and password must be set")
 	}
 	client := resty.New()
-	client.SetHostURL(conf.ONeko.Api.BaseUrl)
+	client.SetBaseURL(conf.ONeko.Api.BaseUrl)
 	client.SetBasicAuth(conf.ONeko.Api.Auth.Username, conf.ONeko.Api.Auth.Password)
 	return client, nil
 }
