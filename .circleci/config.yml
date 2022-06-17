@@ -33,7 +33,7 @@ jobs:
           command: make go-build-for-docker
       - run: mkdir ./circle-artifacts && cp ./o-neko-catnip ./circle-artifacts/
       - save_cache:
-          key: oneko-catnip-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+          key: oneko-catnip-artifacts-{{ or .Environment.CIRCLE_TAG .Environment.CIRCLE_SHA1 }}
           paths:
             - ./circle-artifacts/
       - store_artifacts:
@@ -46,7 +46,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - restore_cache:
-          key: oneko-catnip-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+          key: oneko-catnip-artifacts-{{ or .Environment.CIRCLE_TAG .Environment.CIRCLE_SHA1 }}
       - run: cp ./circle-artifacts/o-neko-catnip .
       - run: docker build -t subshellgmbh/o-neko-catnip:latest-dev .
       - run: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
@@ -59,7 +59,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - restore_cache:
-          key: oneko-catnip-artifacts-{{ .Environment.CIRCLE_SHA1 }}
+          key: oneko-catnip-artifacts-{{ or .Environment.CIRCLE_TAG .Environment.CIRCLE_SHA1 }}
       - run: cp ./circle-artifacts/o-neko-catnip .
       - run: docker build -t subshellgmbh/o-neko-catnip:latest .
       - run: docker tag subshellgmbh/o-neko-catnip:latest subshellgmbh/o-neko-catnip:$CIRCLE_TAG

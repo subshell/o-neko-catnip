@@ -23,7 +23,7 @@ func RegisterCommonMetrics(appVersion string) {
 func startMonitoringUptime() {
 	startTime := time.Now()
 	promauto.NewGaugeFunc(prometheus.GaugeOpts{
-		Name: "oneko_url_trigger_uptime_duration_seconds",
+		Name: "oneko_catnip_uptime_duration_seconds",
 		Help: "The uptime of the application",
 	}, func() float64 {
 		return time.Since(startTime).Seconds()
@@ -32,7 +32,7 @@ func startMonitoringUptime() {
 
 func registerAppInfoMetric(appVersion string) {
 	promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "oneko_url_trigger_info",
+		Name: "oneko_catnip_info",
 		Help: "Information about this application",
 		ConstLabels: map[string]string{
 			"version": appVersion,
