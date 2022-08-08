@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/jarcoal/httpmock v1.2.0
+	github.com/jellydator/ttlcache/v3 v3.0.0
 	github.com/prometheus/client_golang v1.13.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
@@ -27,7 +28,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/jellydator/ttlcache/v3 v3.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
