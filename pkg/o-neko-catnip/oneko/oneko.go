@@ -3,12 +3,12 @@ package oneko
 import (
 	"context"
 	"fmt"
+	"github.com/jellydator/ttlcache/v3"
 	"net/http"
 	"o-neko-catnip/pkg/o-neko-catnip/config"
 	"o-neko-catnip/pkg/o-neko-catnip/logger"
 	"time"
 
-	"github.com/ReneKroon/ttlcache/v2"
 	"github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -18,7 +18,7 @@ import (
 type ONekoApi struct {
 	client          *resty.Client
 	log             *zap.SugaredLogger
-	cache           *ttlcache.Cache
+	cache           *ttlcache.Cache[string, *cacheEntry]
 	wakeupCounter   prometheus.Counter
 	errorCounter    prometheus.Counter
 	apiCallDuration prometheus.Histogram
@@ -30,9 +30,36 @@ func New(configuration *config.Config, ctx context.Context) *ONekoApi {
 		panic(err)
 	}
 
-	requestCache := ttlcache.NewCache()
+	var api *ONekoApi
 
-	api := &ONekoApi{
+	requestCache := ttlcache.New[string, *cacheEntry](
+		ttlcache.WithTTL[string, *cacheEntry](time.Duration(configuration.ONeko.Api.CacheRequestsInMinutes)*time.Minute),
+		ttlcache.WithDisableTouchOnHit[string, *cacheEntry](),
+		ttlcache.WithLoader[string, *cacheEntry](ttlcache.LoaderFunc[string, *cacheEntry](func(c *ttlcache.Cache[string, *cacheEntry], cacheKey string) *ttlcache.Item[string, *cacheEntry] {
+			api.log.Infow("no cached entry found, calling o-neko api", "deploymentUrl", cacheKey)
+			project, err := api.wakeupDeployment(cacheKey)
+			if err != nil {
+				api.log.Errorw("failed to deploy", "deploymentUrl", cacheKey, "error", err)
+				return nil
+			} else {
+				version := getProjectVersionMatchingUrl(project.Versions, cacheKey)
+				if version != nil {
+					entry := c.Set(cacheKey, &cacheEntry{
+						Project: project,
+						Version: version,
+					}, ttlcache.DefaultTTL)
+					api.log.Infow("added element to cache", "cacheKey", cacheKey)
+					api.log.Infow("started deployment", "project", project.Name, "projectVersion", version.Name, "versionDate", version.ImageUpdatedDate)
+					return entry
+				} else {
+					api.log.Infow("no version matching url found", "deploymentUrl", cacheKey)
+					return nil
+				}
+			}
+		})),
+	)
+
+	api = &ONekoApi{
 		client: client,
 		log:    logger.New("oneko"),
 		cache:  requestCache,
@@ -61,11 +88,8 @@ func New(configuration *config.Config, ctx context.Context) *ONekoApi {
 		Name: "oneko_catnip_cache_size",
 		Help: "The number of cached API responses",
 	}, func() float64 {
-		return float64(len(requestCache.GetKeys()))
+		return float64(len(requestCache.Keys()))
 	})
-
-	_ = requestCache.SetTTL(time.Duration(configuration.ONeko.Api.CacheRequestsInMinutes) * time.Minute)
-	requestCache.SkipTTLExtensionOnHit(true)
 
 	startPingMonitor(api, ctx)
 
@@ -81,45 +105,13 @@ func (o *ONekoApi) HandleRequest(host, uri string) (*Project, *ProjectVersion, e
 		o.log.Errorw("failed to generate cache key", "deploymentUrl", deploymentUrl, "error", err)
 		return nil, nil, err
 	}
-	fromCache, err := o.cache.GetByLoader(cacheKey, o.loadIntoCache)
-	if err != nil {
-		return nil, nil, err
-	} else if fromCache != nil {
-		o.log.Infow("serving from cache", "deploymentUrl", deploymentUrl, "cacheKey", cacheKey)
-		entry := fromCache.(*cacheEntry)
-		return entry.Project, entry.Version, nil
-	}
-	return nil, nil, fmt.Errorf("failed to handle request")
-}
-
-func (o *ONekoApi) loadIntoCache(cacheKey string) (interface{}, time.Duration, error) {
-	o.log.Infow("no cached entry found, calling o-neko api", "deploymentUrl", cacheKey)
-	project, err := o.wakeupDeployment(cacheKey)
-	if err != nil {
-		o.log.Errorw("failed to deploy", "deploymentUrl", cacheKey, "error", err)
-		return nil, time.Duration(0), err
+	fromCache := o.cache.Get(cacheKey)
+	if fromCache == nil {
+		return nil, nil, fmt.Errorf("no version matching this url found")
 	} else {
-		version := getProjectVersionMatchingUrl(project.Versions, cacheKey)
-		if version != nil {
-			err = o.cache.Set(cacheKey, cacheEntry{
-				Project: project,
-				Version: version,
-			})
-			if err != nil {
-				o.log.Warnw("failed to insert into cache", "deploymentUrl", cacheKey, "error", err)
-			} else {
-				o.log.Infow("added element to cache", "cacheKey", cacheKey)
-			}
-			o.log.Infow("started deployment", "project", project.Name, "projectVersion", version.Name, "versionDate", version.ImageUpdatedDate)
-			entry := &cacheEntry{
-				Project: project,
-				Version: version,
-			}
-			return entry, time.Duration(0), nil
-		} else {
-			o.log.Infow("no version matching url found", "deploymentUrl", cacheKey)
-			return nil, time.Duration(0), fmt.Errorf("no version matches the current URL")
-		}
+		o.log.Infow("serving from cache", "deploymentUrl", deploymentUrl, "cacheKey", cacheKey)
+		entry := fromCache.Value()
+		return entry.Project, entry.Version, nil
 	}
 }
 

@@ -26,7 +26,7 @@ func beforeEach() {
 
 func afterEach(t *testing.T) {
 	httpmock.DeactivateAndReset()
-	assert.NoError(t, uut.cache.Purge())
+	uut.cache.DeleteAll()
 }
 
 func setTestConfiguration() {

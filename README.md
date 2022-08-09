@@ -69,7 +69,7 @@ To build this tool some tooling is required. Other tools might be interesting bu
 
 #### Required
 
-* Go >=1.17
+* Go >=1.19
 * Docker
 * Make
 * [UPX](https://upx.github.io)
