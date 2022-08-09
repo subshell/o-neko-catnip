@@ -22,7 +22,6 @@ type ONekoApi struct {
 	wakeupCounter   prometheus.Counter
 	errorCounter    prometheus.Counter
 	apiCallDuration prometheus.Histogram
-	loaderFunc      ttlcache.LoaderFunc[string, *cacheEntry]
 }
 
 func New(configuration *config.Config, ctx context.Context) *ONekoApi {
@@ -36,6 +35,28 @@ func New(configuration *config.Config, ctx context.Context) *ONekoApi {
 	requestCache := ttlcache.New[string, *cacheEntry](
 		ttlcache.WithTTL[string, *cacheEntry](time.Duration(configuration.ONeko.Api.CacheRequestsInMinutes)*time.Minute),
 		ttlcache.WithDisableTouchOnHit[string, *cacheEntry](),
+		ttlcache.WithLoader[string, *cacheEntry](ttlcache.LoaderFunc[string, *cacheEntry](func(c *ttlcache.Cache[string, *cacheEntry], cacheKey string) *ttlcache.Item[string, *cacheEntry] {
+			api.log.Infow("no cached entry found, calling o-neko api", "deploymentUrl", cacheKey)
+			project, err := api.wakeupDeployment(cacheKey)
+			if err != nil {
+				api.log.Errorw("failed to deploy", "deploymentUrl", cacheKey, "error", err)
+				return nil
+			} else {
+				version := getProjectVersionMatchingUrl(project.Versions, cacheKey)
+				if version != nil {
+					entry := c.Set(cacheKey, &cacheEntry{
+						Project: project,
+						Version: version,
+					}, ttlcache.DefaultTTL)
+					api.log.Infow("added element to cache", "cacheKey", cacheKey)
+					api.log.Infow("started deployment", "project", project.Name, "projectVersion", version.Name, "versionDate", version.ImageUpdatedDate)
+					return entry
+				} else {
+					api.log.Infow("no version matching url found", "deploymentUrl", cacheKey)
+					return nil
+				}
+			}
+		})),
 	)
 
 	api = &ONekoApi{
@@ -61,28 +82,6 @@ func New(configuration *config.Config, ctx context.Context) *ONekoApi {
 			Help:    "Wakeup API call duration.",
 			Buckets: prometheus.DefBuckets,
 		}),
-		loaderFunc: func(c *ttlcache.Cache[string, *cacheEntry], cacheKey string) *ttlcache.Item[string, *cacheEntry] {
-			api.log.Infow("no cached entry found, calling o-neko api", "deploymentUrl", cacheKey)
-			project, err := api.wakeupDeployment(cacheKey)
-			if err != nil {
-				api.log.Errorw("failed to deploy", "deploymentUrl", cacheKey, "error", err)
-				return nil
-			} else {
-				version := getProjectVersionMatchingUrl(project.Versions, cacheKey)
-				if version != nil {
-					entry := c.Set(cacheKey, &cacheEntry{
-						Project: project,
-						Version: version,
-					}, ttlcache.DefaultTTL)
-					api.log.Infow("added element to cache", "cacheKey", cacheKey)
-					api.log.Infow("started deployment", "project", project.Name, "projectVersion", version.Name, "versionDate", version.ImageUpdatedDate)
-					return entry
-				} else {
-					api.log.Infow("no version matching url found", "deploymentUrl", cacheKey)
-					return nil
-				}
-			}
-		},
 	}
 
 	promauto.NewGaugeFunc(prometheus.GaugeOpts{
@@ -106,9 +105,7 @@ func (o *ONekoApi) HandleRequest(host, uri string) (*Project, *ProjectVersion, e
 		o.log.Errorw("failed to generate cache key", "deploymentUrl", deploymentUrl, "error", err)
 		return nil, nil, err
 	}
-	fromCache := o.cache.Get(cacheKey,
-		ttlcache.WithLoader[string, *cacheEntry](o.loaderFunc),
-	)
+	fromCache := o.cache.Get(cacheKey)
 	if fromCache == nil {
 		return nil, nil, fmt.Errorf("no version matching this url found")
 	} else {
