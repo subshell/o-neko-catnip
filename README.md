@@ -78,3 +78,9 @@ To build this tool some tooling is required. Other tools might be interesting bu
 
 * [gotestsum](https://github.com/gotestyourself/gotestsum): We use it to run our tests in CI
 * [golangci-lint](https://github.com/golangci/golangci-lint): Used for linting
+
+
+* * *
+
+Take a look at this project from the [subshell](https://subshell.com) team. We make [Sophora](https://subshell.com/sophora/): a content management software for content creation, curation, and distribution. [Join our team!](https://subshell.com/jobs/) | [Imprint](https://subshell.com/about/imprint/)
+
