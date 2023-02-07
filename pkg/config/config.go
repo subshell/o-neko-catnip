@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"strings"
 	"time"
 
@@ -46,7 +47,22 @@ func readInConfig() *Config {
 	if err := viper.Unmarshal(&readConfig); err != nil {
 		panic(fmt.Errorf("failed to parse config: %w \n", err))
 	}
+
+	if err := validateConfig(readConfig); err != nil {
+		panic(fmt.Errorf("config is invalid: %w \n", err))
+	}
+
 	return &readConfig
+}
+
+func validateConfig(c Config) error {
+	validate := validator.New()
+
+	if err := validate.Struct(c); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type Config struct {
@@ -54,26 +70,26 @@ type Config struct {
 }
 
 type ONekoConfig struct {
-	Api       ApiConfig     `yaml:"api"`
-	Mode      Mode          `yaml:"mode"`
-	Server    ServerConfig  `yaml:"server"`
-	CatnipUrl string        `yaml:"catnipUrl"`
-	Logging   LoggingConfig `yaml:"logging"`
+	Api       ApiConfig     `yaml:"api" validate:"required,dive"`
+	Mode      Mode          `yaml:"mode" validate:"required,oneof='development' 'production'"`
+	Server    ServerConfig  `yaml:"server" validate:"required,dive"`
+	CatnipUrl string        `yaml:"catnipUrl" validate:"required,uri"`
+	Logging   LoggingConfig `yaml:"logging" validate:"required,dive"`
 }
 
 type LoggingConfig struct {
-	Level LogLevel `yaml:"level"`
+	Level LogLevel `yaml:"level" validate:"oneof='' 'debug' 'info' 'warn' 'error'"`
 }
 
 type ApiConfig struct {
-	BaseUrl              string        `yaml:"baseUrl"`
-	Auth                 AuthConfig    `yaml:"auth"`
-	ApiCallCacheDuration time.Duration `yaml:"apiCallCacheDuration"`
+	BaseUrl              string        `yaml:"baseUrl" validate:"required,uri"`
+	Auth                 AuthConfig    `yaml:"auth" validate:"required,dive"`
+	ApiCallCacheDuration time.Duration `yaml:"apiCallCacheDuration" validate:"required,max=5m"`
 }
 
 type AuthConfig struct {
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Username string `yaml:"username" validate:"required"`
+	Password string `yaml:"password" validate:"required"`
 }
 
 type Mode string
@@ -93,5 +109,5 @@ const (
 )
 
 type ServerConfig struct {
-	Port int `yaml:"port"`
+	Port int `yaml:"port" validate:"required,number"`
 }
