@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>Starting {{ .Project.Name }} {{ .Version.Name }}...</title>
+	<link rel="icon" href="assets/favicon.ico"/>
+</head>
+<body class="bg-fixed bg-gray-100 dark:bg-bgdark-800 dark:text-gray-100 text-black p-6 md:p-12 flex flex-row justify-center">
+<main class="flex flex-col items-center justify-center gap-12 shadow-xl rounded-3xl p-8 bg-white dark:bg-bgdark-900 max-w-[840px]">
+	<img class="w-56" src="assets/oneko.svg"/>
+	<h1 class="font-logo text-5xl uppercase font-bold bg-gradient-to-r from-yellow-500 to-pink-500 bg-clip-text text-transparent">O-Neko</h1>
+
+	<div class="p-2 bg-orange-100 rounded-full">
+		<svg class="animate-spin text-orange-500 text-4xl" data-icon="mdiLoading"></svg>
+	</div>
+	<div class="text-center flex flex-col gap-2">
+		<p class="">
+			Starting version <span class="px-2 py-0.5 bg-gradient-to-r from-yellow-900 to-orange-500 font-bold rounded-xl text-white">{{ .Version.Name }}</span>
+			of project <span class="px-2 py-0.5 bg-gradient-to-r from-orange-500 to-red-500 font-bold rounded-xl text-white">{{ .Project.Name }}</span>.
+		</p>
+		<p class="text-sm">Please wait. You will be redirected automatically once the deployment is ready.<br/>This version was last updated on <strong>{{
+			.Version.ImageUpdatedDate | formatAsDate }}</strong>.</p>
+	</div>
+	<a class="border-2 hover:bg-gray-100 dark:hover:bg-bgdark-800 rounded-md px-2 py-1" href="{{ .BaseUrl }}" rel="nofollow noreferrer" target="_blank">
+		<svg data-icon="mdiOpenInNew"></svg>
+		<span>Open O-Neko</span>
+	</a>
+</main>
+<script type="module" src="/src/main.ts"></script>
+<script type="module" src="/src/status-check.ts"></script>
+</body>
+</html>

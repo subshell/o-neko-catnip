@@ -7,7 +7,7 @@ This is an optional extension application for [O-Neko](https://github.com/subshe
 for stopped O-Neko deployments. It will then try to start the deployment with the URL it has been loaded with and will then redirect the user to the deployment
 once it started.
 
-[![O-Neko Catnip](./docs/screenshot_small.png)](./docs/screenshot.png)
+<td><img src="./docs/screenshot_light.png" alt="O-Neko Catnip light theme" width="500px"></td>
 
 ## Why
 
@@ -24,7 +24,7 @@ be redirected to the desired frontend.
 
 ## Configuration
 
-The application requires little configuration - only the O-Neko base-URL as well a username and password need to be configured. It can be configured by placing
+The application requires little configuration - only the O-Neko base-URL, the default URL of O-Neko Catnip as well a username and password need to be configured. It can be configured by placing
 an `application.yaml` file next to the executable or in a `config` directory next to the executable. The structure of the configuration file is:
 
 ```yaml
@@ -34,16 +34,12 @@ oneko:
     auth:
       username:
       password:
-    cacheRequestsInMinutes: 5
+  catnipUrl:
   server:
     port: 8080
   logging:
     level:
 ```
-
-`cacheRequestsInMinutes` configures how many minutes need to pass between wakeup-requests to the same project version. This means that if you call URL X two
-times in a row within the configured timespan, only the first will attempt to start a deployment in O-Neko. Only after the configured time passed, another
-deployment attempt will be made. The other properties should be self-explanatory.
 
 **All properties can be set using environment variables** without a configuration file. This should be preferred, especially when it comes to the user's
 credentials!
@@ -52,8 +48,7 @@ or `ONEKO_API_BASEURL`.
 
 ## Limits
 
-* This tool will only trigger wake-ups of deployments when receiving GET requests. Other request types will not result in a wake-up.
-* This tool will only wake up deployments once every `cacheRequestsInMinutes` minutes (see configuration)
+This tool will only trigger wake-ups of deployments when receiving GET requests. Other request types will not result in a wake-up.
 
 ## Metrics
 

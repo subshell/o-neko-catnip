@@ -11,7 +11,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 ADD /o-neko-catnip /app/
 ADD /config/application-default.yaml /app/config/
-ADD /public /app/public
+ADD /frontend/dist/ /app/frontend/dist/
 
 WORKDIR /app
 
