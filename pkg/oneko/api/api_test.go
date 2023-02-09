@@ -143,19 +143,6 @@ func Test_GetProjectAndVersionByIds(t *testing.T) {
 	assert.Equal(t, 1, getByIdCallCount)
 }
 
-func Test_HandleRequest_NotFound(t *testing.T) {
-	beforeEach()
-	defer afterEach(t)
-
-	host := "my-test-instance.oneko.company.cloud"
-
-	httpmock.RegisterResponder("GET", "https://oneko.com/api/project/byDeploymentUrl?deploymentUrl="+host, httpmock.NewStringResponder(404, ""))
-
-	project, err := uut.GetProjectForUrl(host, context.Background())
-
-	assert.EqualError(t, err, "no version matching this url found")
-	assert.Nil(t, project)
-}
 
 func TestApi_GetAllProjects(t *testing.T) {
 	beforeEach()
@@ -171,7 +158,6 @@ func TestApi_GetAllProjects(t *testing.T) {
 func setupProjectResponders(t *testing.T) {
 	getProjectResponder, err := httpmock.NewJsonResponder(http.StatusOK, demoProject)
 	assert.NoError(t, err)
-	httpmock.RegisterResponder("GET", fmt.Sprintf("https://oneko.com/api/project/byDeploymentUrl?deploymentUrl=%s", versionUrl), getProjectResponder)
 	httpmock.RegisterResponder("GET", fmt.Sprintf("https://oneko.com/api/project/%s", projectUuid), getProjectResponder)
 
 	wakeupResponder := httpmock.NewStringResponder(http.StatusOK, "")

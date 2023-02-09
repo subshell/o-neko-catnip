@@ -127,37 +127,6 @@ func (api *Api) ping(ctx context.Context) error {
 	return nil
 }
 
-func (api *Api) GetProjectForUrl(url string, ctx context.Context) (*oneko.Project, error) {
-	timer := prometheus.NewTimer(api.apiCallDuration)
-	defer timer.ObserveDuration()
-
-	response, err := api.client.R().
-		SetQueryParam("deploymentUrl", url).
-		SetContext(ctx).
-		SetResult(&oneko.Project{}).
-		Get("/api/project/byDeploymentUrl")
-
-	if err != nil {
-		api.errorCounter.Inc()
-		return nil, err
-	} else if response.IsError() {
-		api.errorCounter.Inc()
-		if response.StatusCode() == http.StatusNotFound {
-			return nil, fmt.Errorf("no version matching this url found")
-		} else {
-			return nil, fmt.Errorf("encountered an error calling O-Neko API: %s (%d)", response.Status(), response.StatusCode())
-		}
-	}
-
-	project, ok := response.Result().(*oneko.Project)
-
-	if !ok {
-		return nil, fmt.Errorf("encountered an error parsing the response from the O-Neko API")
-	}
-
-	return project, nil
-}
-
 func (api *Api) GetProjectById(id string, ctx context.Context) (*oneko.Project, error) {
 	timer := prometheus.NewTimer(api.apiCallDuration)
 	defer timer.ObserveDuration()

@@ -4,7 +4,7 @@ oneko:
     auth:
       username:
       password:
-    apiCallCacheDuration: 15s
+    apiCallCacheDuration: 1m
   catnipUrl:
   server:
     port: 8080

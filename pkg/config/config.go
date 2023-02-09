@@ -84,7 +84,7 @@ type LoggingConfig struct {
 type ApiConfig struct {
 	BaseUrl              string        `yaml:"baseUrl" validate:"required,uri"`
 	Auth                 AuthConfig    `yaml:"auth" validate:"required,dive"`
-	ApiCallCacheDuration time.Duration `yaml:"apiCallCacheDuration" validate:"required,max=5m"`
+	ApiCallCacheDuration time.Duration `yaml:"apiCallCacheDuration" validate:"required,min=15s,max=10m"`
 }
 
 type AuthConfig struct {

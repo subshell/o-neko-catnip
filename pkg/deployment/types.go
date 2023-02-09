@@ -1,8 +1,15 @@
 package deployment
 
 type StatusResponse struct {
-	DeploymentReady bool   `json:"deploymentReady"`
-	RedirectUrl     string `json:"redirectUrl"`
-	IsError         bool   `json:"isError"`
-	ErrorMessage    string `json:"errorMessage"`
+	DeploymentStatus DeploymentStatus `json:"deploymentStatus"`
+	RedirectUrl      string           `json:"redirectUrl"`
+	ErrorMessage     string           `json:"errorMessage"`
 }
+
+type DeploymentStatus string
+
+const (
+	Pending DeploymentStatus = "Pending"
+	Ready   DeploymentStatus = "Ready"
+	Error   DeploymentStatus = "Error"
+)

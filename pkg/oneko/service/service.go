@@ -13,25 +13,32 @@ import (
 	"o-neko-catnip/pkg/oneko/api"
 	"o-neko-catnip/pkg/utils"
 	"regexp"
+	"strings"
 )
 
+type projectAndVersionIds struct {
+	project        string
+	projectVersion string
+}
+
 type Service struct {
-	log          *zap.SugaredLogger
-	projectCache *ttlcache.Cache[string, *oneko.Project]
-	api          *api.Api
+	log                            *zap.SugaredLogger
+	projectIdToProjectCache        *ttlcache.Cache[string, *oneko.Project]
+	urlToProjectAndVersionIdsCache *ttlcache.Cache[string, projectAndVersionIds]
+	api                            *api.Api
 }
 
 func New(configuration *config.Config, ctx context.Context) *Service {
 
 	log := logger.New("onekoSvc")
-	api := api.New(configuration)
+	onekoApi := api.New(configuration)
 
-	projectCache := ttlcache.New[string, *oneko.Project](
+	projectIdToProjectCache := ttlcache.New[string, *oneko.Project](
 		ttlcache.WithTTL[string, *oneko.Project](configuration.ONeko.Api.ApiCallCacheDuration),
 		ttlcache.WithDisableTouchOnHit[string, *oneko.Project](),
 		ttlcache.WithLoader[string, *oneko.Project](ttlcache.LoaderFunc[string, *oneko.Project](func(c *ttlcache.Cache[string, *oneko.Project], projectId string) *ttlcache.Item[string, *oneko.Project] {
 			log.Infow("no cached entry found, calling o-neko api", "projectUuid", projectId)
-			project, err := api.GetProjectById(projectId, ctx)
+			project, err := onekoApi.GetProjectById(projectId, ctx)
 			if err != nil {
 				log.Errorw("O-Neko API returned an error", "error", err)
 				return nil
@@ -41,63 +48,52 @@ func New(configuration *config.Config, ctx context.Context) *Service {
 		})),
 	)
 
+	urlToProjectAndVersionIdsCache := ttlcache.New[string, projectAndVersionIds](
+		ttlcache.WithTTL[string, projectAndVersionIds](configuration.ONeko.Api.ApiCallCacheDuration),
+		ttlcache.WithDisableTouchOnHit[string, projectAndVersionIds](),
+		ttlcache.WithLoader[string, projectAndVersionIds](ttlcache.LoaderFunc[string, projectAndVersionIds](func(c *ttlcache.Cache[string, projectAndVersionIds], deploymentUrl string) *ttlcache.Item[string, projectAndVersionIds] {
+			deploymentUrl, err := getDeploymentUrlWithoutProtocolAndPath(deploymentUrl)
+			if err != nil {
+				return nil
+			}
+
+			entry, err := populateUrlToIdCacheAndReturnEntryForUrl(c, log, onekoApi, deploymentUrl)
+			if err != nil {
+				return nil
+			}
+			return entry
+		})),
+	)
+
 	promauto.NewGaugeFunc(prometheus.GaugeOpts{
 		Name: "oneko_catnip_cache_size",
 		Help: "The number of cached projects",
 	}, func() float64 {
-		return float64(len(projectCache.Keys()))
+		return float64(len(projectIdToProjectCache.Keys()))
 	})
 
-	api.StartConnectionMonitor(ctx)
+	onekoApi.StartConnectionMonitor(ctx)
 
 	return &Service{
-		log:          log,
-		projectCache: projectCache,
-		api:          api,
+		log:                            log,
+		projectIdToProjectCache:        projectIdToProjectCache,
+		urlToProjectAndVersionIdsCache: urlToProjectAndVersionIdsCache,
+		api:                            onekoApi,
 	}
 }
 
-func (o *Service) GetProjectAndVersionForUrl(url string, ctx context.Context) (*oneko.Project, *oneko.ProjectVersion, error) {
-	project, version := searchForProjectAndVersionMatchingUrl(o.projectCache.Items(), url)
-
-	if project != nil && version != nil {
-		o.log.Debugw("serving from cache", "url", url, "project", project.Name, "version", version.Name)
-		return project, version, nil
+func (o *Service) GetProjectAndVersionForUrl(url string) (*oneko.Project, *oneko.ProjectVersion, error) {
+	fromCache := o.urlToProjectAndVersionIdsCache.Get(url)
+	if fromCache == nil {
+		return nil, nil, fmt.Errorf("no project found with url " + url)
+	} else {
+		value := fromCache.Value()
+		return o.GetProjectAndVersionByIds(value.project, value.projectVersion)
 	}
-
-	o.log.Debugw("calling api to get project by url", "url", url)
-
-	deploymentUrl, err := getDeploymentUrlWithoutProtocolAndPath(url)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	project, err = o.api.GetProjectForUrl(url, ctx)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	o.projectCache.Set(project.Uuid, project, ttlcache.DefaultTTL)
-	version = project.GetProjectVersionMatchingUrl(deploymentUrl)
-	return project, version, nil
-}
-
-func searchForProjectAndVersionMatchingUrl(projects map[string]*ttlcache.Item[string, *oneko.Project], url string) (*oneko.Project, *oneko.ProjectVersion) {
-	for _, entry := range projects {
-		if entry.IsExpired() {
-			continue
-		}
-		if version := entry.Value().GetProjectVersionMatchingUrl(url); version != nil {
-			return entry.Value(), version
-		}
-	}
-	return nil, nil
 }
 
 func (o *Service) getProjectById(projectId string) (*oneko.Project, error) {
-	fromCache := o.projectCache.Get(projectId)
+	fromCache := o.projectIdToProjectCache.Get(projectId)
 	if fromCache == nil {
 		return nil, fmt.Errorf("no project found with id " + projectId)
 	} else {
@@ -120,31 +116,58 @@ func (o *Service) GetProjectAndVersionByIds(projectUuid, versionUuid string) (*o
 
 func (o *Service) TriggerDeployment(projectId, versionId string, ctx context.Context) error {
 	err := o.api.Deploy(projectId, versionId, ctx)
-	o.projectCache.Delete(projectId)
+	o.projectIdToProjectCache.Delete(projectId)
 	return err
 }
 
-func (o *Service) GetAllProjectDomains(ctx context.Context) (*utils.Set[string], error) {
-	projects, err := o.api.GetAllProjects(ctx)
-
+func (o *Service) GetAllProjectDomains() *utils.Set[string] {
+	err := o.ensureUrlToIdCacheIsPopulated()
 	if err != nil {
-		return nil, err
+		o.log.Infow("encountered an error populating the url cache", err)
 	}
 
-	domains := utils.NewSet[string]()
+	set := utils.NewSet[string]()
+	set.AddAll(o.urlToProjectAndVersionIdsCache.Keys())
+	return set
+}
 
+func (o *Service) ensureUrlToIdCacheIsPopulated() error {
+	if o.urlToProjectAndVersionIdsCache.Len() == 0 {
+		return o.populateUrlToIdCache()
+	}
+	return nil
+}
+
+func (o *Service) populateUrlToIdCache() error {
+	_, err := populateUrlToIdCacheAndReturnEntryForUrl(o.urlToProjectAndVersionIdsCache, o.log, o.api, "")
+	return err
+}
+
+func populateUrlToIdCacheAndReturnEntryForUrl(cache *ttlcache.Cache[string, projectAndVersionIds], log *zap.SugaredLogger, onekoApi *api.Api, deploymentUrl string) (*ttlcache.Item[string, projectAndVersionIds], error) {
+	projects, err := onekoApi.GetAllProjects(context.Background())
+	if err != nil {
+		log.Errorw("O-Neko API returned an error", "error", err)
+		return nil, err
+	}
+	var searchEntry *ttlcache.Item[string, projectAndVersionIds]
 	for _, project := range projects {
 		for _, version := range project.Versions {
 			for _, url := range version.Urls {
+				entry := projectAndVersionIds{
+					project:        project.Uuid,
+					projectVersion: version.Uuid,
+				}
 				urlWithoutProtocolAndPath, err2 := getDeploymentUrlWithoutProtocolAndPath(url)
 				if err2 == nil {
-					domains.Add(urlWithoutProtocolAndPath)
+					cacheEntry := cache.Set(urlWithoutProtocolAndPath, entry, ttlcache.DefaultTTL)
+					if strings.EqualFold(deploymentUrl, urlWithoutProtocolAndPath) {
+						searchEntry = cacheEntry
+					}
 				}
 			}
 		}
 	}
-
-	return domains, nil
+	return searchEntry, nil
 }
 
 func getDeploymentUrlWithoutProtocolAndPath(deploymentUrl string) (string, error) {

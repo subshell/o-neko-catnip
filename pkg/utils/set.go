@@ -14,6 +14,12 @@ func (s *Set[T]) Add(item T) {
 	s.items[item] = true
 }
 
+func (s *Set[T]) AddAll(coll []T) {
+	for _, item := range coll {
+		s.Add(item)
+	}
+}
+
 func (s *Set[T]) Contains(item T) bool {
 	_, exists := s.items[item]
 	return exists

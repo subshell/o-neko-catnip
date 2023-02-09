@@ -152,7 +152,7 @@ func (s *TriggerServer) handleGetRequestToWakeupUrl(c *gin.Context) {
 
 func (s *TriggerServer) handleGetRequestToProjectUrl(c *gin.Context) {
 	s.log.Debugw("incoming request to non-default url", "host", c.Request.Host)
-	project, version, err := s.oneko.GetProjectAndVersionForUrl(fmt.Sprintf("%s%s", c.Request.Host, c.Request.RequestURI), c)
+	project, version, err := s.oneko.GetProjectAndVersionForUrl(fmt.Sprintf("%s%s", c.Request.Host, c.Request.RequestURI))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -177,6 +177,20 @@ func (s *TriggerServer) handleStatusRequest(c *gin.Context) {
 	if !exists {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
+	}
+
+	project, version, err := s.oneko.GetProjectAndVersionForUrl(deploymentUrl)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if !version.IsDeployed() {
+		err = s.oneko.TriggerDeployment(project.Uuid, version.Uuid, c)
+		if err != nil {
+			_ = c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
 	}
 
 	status, err := s.monitor.DeploymentStatus(deploymentUrl)

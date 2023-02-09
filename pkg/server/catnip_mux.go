@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"net/http"
@@ -23,12 +22,10 @@ func newMux(defaultHandler, otherHandler http.Handler, svc *service.Service) cat
 		Name: "oneko_catnip_oneko_projectversion_domains",
 		Help: "The number of unique domains across all O-Neko projects and versions",
 	})
-	memoize := utils.Memoize(5*time.Minute, func() (*utils.Set[string], error) {
-		domains, err := svc.GetAllProjectDomains(context.Background())
-		if err == nil {
-			domainCount.Set(float64(domains.Size()))
-		}
-		return domains, err
+	memoize := utils.Memoize(15*time.Second, func() (*utils.Set[string], error) {
+		domains := svc.GetAllProjectDomains()
+		domainCount.Set(float64(domains.Size()))
+		return domains, nil
 	})
 	return catnipMux{
 		defaultHandler: defaultHandler,

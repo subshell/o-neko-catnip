@@ -46,38 +46,33 @@ func calculateDeploymentStatus(client *resty.Client, url string) *StatusResponse
 
 	if err != nil {
 		return &StatusResponse{
-			DeploymentReady: false,
-			RedirectUrl:     url,
-			IsError:         true,
-			ErrorMessage:    err.Error(),
+			DeploymentStatus: Error,
+			RedirectUrl:      url,
+			ErrorMessage:     err.Error(),
 		}
-	} else if response.StatusCode() >= 500 {
+	} else if response.StatusCode() == 503 {
 		return &StatusResponse{
-			DeploymentReady: false,
-			RedirectUrl:     url,
-			IsError:         false, // >= 500 is the default when a deployment is starting
-			ErrorMessage:    "",
+			DeploymentStatus: Pending, // 503 is the default when an ingress has been created but the pod is not available yet
+			RedirectUrl:      url,
+			ErrorMessage:     "",
 		}
 	}
 
-	// All status codes < 500 are considered a ready deployment as long as
+	// All status codes != 503 are considered a ready deployment as long as
 	// we don't read the catnip header.
-	// This is equal to the behavior of the first catnip version.
 
 	if len(response.Header().Get("oneko-catnip")) > 0 {
 		// this is us - the deployment has not happened yet
 		return &StatusResponse{
-			DeploymentReady: false,
-			RedirectUrl:     url,
-			IsError:         false,
-			ErrorMessage:    "",
+			DeploymentStatus: Pending,
+			RedirectUrl:      url,
+			ErrorMessage:     "",
 		}
 	}
 
 	return &StatusResponse{
-		DeploymentReady: true,
-		RedirectUrl:     url,
-		IsError:         false,
-		ErrorMessage:    "",
+		DeploymentStatus: Ready,
+		RedirectUrl:      url,
+		ErrorMessage:     "",
 	}
 }
