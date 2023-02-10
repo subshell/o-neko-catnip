@@ -54,7 +54,11 @@ func (s *TriggerServer) Start() {
 	otherHandler := gin.New()
 
 	// logging
-	mainHandler.Use(ginzap.Ginzap(s.log.Desugar(), time.RFC3339, true))
+	mainHandler.Use(ginzap.GinzapWithConfig(s.log.Desugar(), &ginzap.Config{
+		TimeFormat: time.RFC3339,
+		UTC:        true,
+		SkipPaths:  []string{"/up", "/metrics"},
+	}))
 	mainHandler.Use(ginzap.RecoveryWithZap(s.log.Desugar(), true))
 	mainHandler.Use(s.catnipHeaderHandler())
 	otherHandler.Use(ginzap.Ginzap(s.log.Desugar(), time.RFC3339, true))
@@ -70,6 +74,7 @@ func (s *TriggerServer) Start() {
 	mainHandler.Static("/assets/", "frontend/dist/assets/")
 	mainHandler.StaticFile("/favicon.ico", "public/assets/favicon.ico")
 	mainHandler.GET("/metrics", metrics.PrometheusHandler())
+	mainHandler.GET("/up", s.upHandler)
 
 	mainHandler.GET("/", s.handleGetRequestToCatnipHome)
 	mainHandler.GET("/:projectId/:versionId", s.handleGetRequestToWakeupUrl)
@@ -217,4 +222,8 @@ func (s *TriggerServer) catnipHeaderHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("oneko-catnip", s.appVersion)
 	}
+}
+
+func (s *TriggerServer) upHandler(c *gin.Context) {
+	c.Status(http.StatusOK)
 }

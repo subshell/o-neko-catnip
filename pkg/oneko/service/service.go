@@ -115,7 +115,13 @@ func (o *Service) GetProjectAndVersionByIds(projectUuid, versionUuid string) (*o
 }
 
 func (o *Service) TriggerDeployment(projectId, versionId string, ctx context.Context) error {
+	o.log.Debugw("triggering deployment", "projectId", projectId, "versionId", versionId)
 	err := o.api.Deploy(projectId, versionId, ctx)
+	if err != nil {
+		o.log.Infow("encountered an error while triggering a deployment", "projectId", projectId, "versionId", versionId, "error", err)
+	} else {
+		o.log.Infow("triggered deployment", "projectId", projectId, "versionId", versionId)
+	}
 	o.projectIdToProjectCache.Delete(projectId)
 	return err
 }
