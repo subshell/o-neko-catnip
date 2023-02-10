@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/gin-contrib/zap v0.1.0
 	github.com/gin-gonic/gin v1.8.2
+	github.com/go-playground/mold/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/jarcoal/httpmock v1.3.0
@@ -41,6 +42,8 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
+	github.com/segmentio/go-camelcase v0.0.0-20160726192923-7085f1e3c734 // indirect
+	github.com/segmentio/go-snakecase v1.2.0 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

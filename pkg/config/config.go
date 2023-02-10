@@ -1,8 +1,12 @@
 package config
 
 import (
+	"context"
 	"fmt"
+	"github.com/go-playground/mold/v4"
+	"github.com/go-playground/mold/v4/modifiers"
 	"github.com/go-playground/validator/v10"
+	"regexp"
 	"strings"
 	"time"
 
@@ -48,6 +52,10 @@ func readInConfig() *Config {
 		panic(fmt.Errorf("failed to parse config: %w \n", err))
 	}
 
+	if err := transformConfig(&readConfig); err != nil {
+		panic(fmt.Errorf("failed to transform config: %w \n", err))
+	}
+
 	if err := validateConfig(readConfig); err != nil {
 		panic(fmt.Errorf("config is invalid: %w \n", err))
 	}
@@ -55,8 +63,30 @@ func readInConfig() *Config {
 	return &readConfig
 }
 
+func transformConfig(c *Config) error {
+	tf := modifiers.New()
+	tf.Register("urlWithoutProtocol", func(ctx context.Context, fl mold.FieldLevel) error {
+		protocolRegex := regexp.MustCompile(`^\w+://`)
+		if protocolRegex.MatchString(fl.Field().String()) {
+			literalString := protocolRegex.ReplaceAllLiteralString(fl.Field().String(), "")
+			fl.Field().SetString(literalString)
+		}
+		return nil
+	})
+	return tf.Struct(context.Background(), c)
+}
+
 func validateConfig(c Config) error {
 	validate := validator.New()
+
+	err := validate.RegisterValidation("urlWithOptionalPort", func(fl validator.FieldLevel) bool {
+		hostnameAndOptionalPortRegex := regexp.MustCompile(`[\w.\-]+(:\d{1,5})?`)
+		return hostnameAndOptionalPortRegex.MatchString(fl.Field().String())
+	}, false)
+
+	if err != nil {
+		return err
+	}
 
 	if err := validate.Struct(c); err != nil {
 		return err
@@ -73,7 +103,7 @@ type ONekoConfig struct {
 	Api       ApiConfig     `yaml:"api" validate:"required,dive"`
 	Mode      Mode          `yaml:"mode" validate:"required,oneof='development' 'production'"`
 	Server    ServerConfig  `yaml:"server" validate:"required,dive"`
-	CatnipUrl string        `yaml:"catnipUrl" validate:"required,uri"`
+	CatnipUrl string        `yaml:"catnipUrl" validate:"required,urlWithOptionalPort" mod:"trim,lcase,urlWithoutProtocol"`
 	Logging   LoggingConfig `yaml:"logging" validate:"required,dive"`
 }
 
