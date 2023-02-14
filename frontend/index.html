@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>O-Neko Catnip</title>
+	<link rel="icon" href="assets/favicon.ico"/>
+</head>
+<body class="bg-fixed bg-gray-100 dark:bg-bgdark-800 dark:text-gray-100 text-black p-6 md:p-12 flex flex-row justify-center">
+<main class="flex flex-col items-center justify-center gap-12 shadow-xl rounded-3xl p-8 bg-white dark:bg-bgdark-900 max-w-[840px]">
+	<img class="w-56" src="assets/oneko.svg"/>
+	<div class="flex flex-col items-center">
+		<h1 class="font-logo text-5xl uppercase font-bold bg-gradient-to-r from-yellow-500 to-pink-500 bg-clip-text text-transparent">O-Neko</h1>
+		<h2 class="font-logo text-2xl uppercase font-bold bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">Catnip</h2>
+	</div>
+
+	<div class="text-center flex flex-col gap-2">
+		<p>
+			This is O-Neko Catnip - a component that starts stopped deployments in O-Neko when one of the deployment's URLs is opened.
+		</p>
+		<p>If you see this page you are not visiting an existing deployment URL. If you think this is a mistake please kindly inform your administrator or check
+			O-Neko for the deployment you are looking for.
+		</p>
+	</div>
+	<a class="border-2 hover:bg-gray-100 dark:hover:bg-bgdark-800 rounded-md px-2 py-1" href="{{ .BaseUrl }}" rel="nofollow noreferrer" target="_blank">
+		<svg data-icon="mdiOpenInNew"></svg>
+		<span>Open O-Neko</span>
+	</a>
+</main>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

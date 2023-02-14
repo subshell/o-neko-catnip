@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>O-Neko Catnip - Error</title>
+	<link rel="icon" href="assets/favicon.ico"/>
+</head>
+<body class="bg-fixed bg-gray-100 dark:bg-bgdark-800 dark:text-gray-100 text-black p-6 md:p-12 flex flex-row justify-center">
+<main class="flex flex-col items-center justify-center gap-12 shadow-xl rounded-3xl p-8 bg-white dark:bg-bgdark-900 max-w-[840px]">
+	<img class="w-56" src="assets/oneko.svg"/>
+	<div class="flex flex-col items-center">
+		<h1 class="font-logo text-5xl uppercase font-bold bg-gradient-to-r from-yellow-500 to-pink-500 bg-clip-text text-transparent">O-Neko</h1>
+		<h2 class="font-logo text-2xl uppercase font-bold bg-gradient-to-r from-red-500 to-red-800 bg-clip-text text-transparent">Error</h2>
+	</div>
+
+	<div class="text-center flex flex-col gap-2">
+		<p>An error occurred. This can happen if the O-Neko project and version this URL should point to do not exist, if the waking up of the version did
+			not succeed or if a cat was playing with the cables. The following error message contains more details. If you are sure that this is a mistake
+			please kindly inform your administrator.
+		</p>
+		<p class="text-sm text-white font-mono p-2 rounded-md bg-neutral-900">
+			{{ .error }}
+		</p>
+	</div>
+	<a class="border-2 hover:bg-gray-100 dark:hover:bg-bgdark-800 rounded-md px-2 py-1" href="{{ .BaseUrl }}" rel="nofollow noreferrer" target="_blank">
+		<svg data-icon="mdiOpenInNew"></svg>
+		<span>Open O-Neko</span>
+	</a>
+</main>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

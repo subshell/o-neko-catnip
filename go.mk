@@ -9,7 +9,7 @@ BUILDFLAGS += -installsuffix cgo --tags release
 
 BUILD_PATH ?= $(shell pwd)
 CMD = $(BUILD_PATH)/o-neko-catnip
-CMD_SRC = cmd/o-neko-catnip/*.go
+CMD_SRC = cmd/*.go
 
 all: test lint build
 
@@ -22,10 +22,10 @@ run:
 	$(GO) run $(LDFLAGS) $(CMD_SRC) $(ARGS)
 
 test:
-	$(GO) test -v ./pkg/**/* -coverprofile cover.out
+	$(GO) test -v ./pkg/... -coverprofile cover.out
 
 test-ci:
-	$(GO_TESTSUM) --format testname --junitfile test_results.xml -- -v ./pkg/**/* -coverprofile cover.out
+	$(GO_TESTSUM) --format testname --junitfile test_results.xml -- -v ./pkg/... -coverprofile cover.out
 
 lint:
 	$(GO) mod verify

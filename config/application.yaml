@@ -2,3 +2,6 @@ oneko:
   api:
     baseUrl: http://localhost:8080
   mode: development
+  catnipUrl: localhost:8090
+  server:
+    port: 8090
