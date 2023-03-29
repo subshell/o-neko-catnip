@@ -100,8 +100,8 @@ github.com/go-playground/assert/v2 v2.2.0 h1:JvknZsQTYeFEAhQwI4qEt9cyV5ONwRHC+lY
 github.com/go-playground/locales v0.14.0/go.mod h1:sawfccIbzZTqEDETgFXqTho0QybSa7l++s0DH+LDiLs=
 github.com/go-playground/locales v0.14.1 h1:EWaQ/wswjilfKLTECiXz7Rh+3BjFhfDFKv/oXslEjJA=
 github.com/go-playground/locales v0.14.1/go.mod h1:hxrqLVvrK65+Rwrd5Fc6F2O76J/NuW9t0sjnWqG1slY=
-github.com/go-playground/mold/v4 v4.2.1 h1:jZm+NrJN5HTbOjsuxM1wp29+BVX0b/khHxTlFTV2ppA=
-github.com/go-playground/mold/v4 v4.2.1/go.mod h1:1EqP5A4c7LEL1hEcYIaWUYkM2Cb1DAJjGFZippDluiI=
+github.com/go-playground/mold/v4 v4.3.0 h1:roQXm+gh3hnxONskPyl02TWLT0N5dw3tOWhOcp9nhow=
+github.com/go-playground/mold/v4 v4.3.0/go.mod h1:1EqP5A4c7LEL1hEcYIaWUYkM2Cb1DAJjGFZippDluiI=
 github.com/go-playground/universal-translator v0.18.0/go.mod h1:UvRDBj+xPUEGrFYl+lu/H90nyDXpg0fqeB/AQUGNTVA=
 github.com/go-playground/universal-translator v0.18.1 h1:Bcnm0ZwsGyWbCzImXv+pAJnYK9S473LQFuzCbDbfSFY=
 github.com/go-playground/universal-translator v0.18.1/go.mod h1:xekY+UJKNuX9WP91TpwSH2VMlDf28Uj24BCp08ZFTUY=
