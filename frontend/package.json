@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "alpinejs": "3.11.1",
-    "@mdi/js": "7.1.96"
+    "@mdi/js": "7.2.96"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.13",
