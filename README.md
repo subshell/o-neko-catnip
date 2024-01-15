@@ -37,7 +37,7 @@ oneko:
   catnipUrl:
   server:
     port: 8080
-    metricsPort:
+    metricsPort: 8080
   logging:
     level:
 ```
