@@ -1,3 +1,7 @@
+## 1.3.0 (2024-01-15)
+* allow serving metrics under a different port
+* update dependencies to latest versions
+
 ## 1.2.0 (2023-02-15)
 
 * chore: update changelog ([7642cff](https://github.com/subshell/o-neko-catnip/commit/7642cff))
