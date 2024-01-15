@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   frontend:
     docker:
-      - image: cimg/node:18.13
+      - image: cimg/node:20.11
     steps:
       - checkout
       - restore_cache:
@@ -26,7 +26,7 @@ jobs:
 
   backend:
     docker:
-      - image: docker.subshell.com/builder/golang-builder:1.0.0
+      - image: docker.subshell.com/builder/golang-builder:1.4.0
         auth:
           username: $DOCKER_USERNAME
           password: $DOCKER_PASSWORD

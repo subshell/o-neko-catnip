@@ -37,6 +37,7 @@ oneko:
   catnipUrl:
   server:
     port: 8080
+    metricsPort:
   logging:
     level:
 ```
@@ -64,7 +65,7 @@ To build this tool some tooling is required. Other tools might be interesting bu
 
 #### Required
 
-* Go >=1.19
+* Go >=1.21
 * Docker
 * Make
 * [UPX](https://upx.github.io)

@@ -10,7 +10,7 @@ import (
 func init() {
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "server [flags]",
-		Short: "starts the O-Neko URL trigger server",
+		Short: "starts the O-Neko catnip server",
 		Run: func(cmd *cobra.Command, args []string) {
 			appContext, appContextCancel := context.WithCancel(context.Background())
 			defer appContextCancel()

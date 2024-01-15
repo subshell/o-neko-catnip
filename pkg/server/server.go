@@ -73,8 +73,6 @@ func (s *TriggerServer) Start() {
 	mainHandler.LoadHTMLGlob("frontend/dist/*.html")
 	mainHandler.Static("/assets/", "frontend/dist/assets/")
 	mainHandler.StaticFile("/favicon.ico", "public/assets/favicon.ico")
-	mainHandler.GET("/metrics", metrics.PrometheusHandler())
-	mainHandler.GET("/up", s.upHandler)
 
 	mainHandler.GET("/", s.handleGetRequestToCatnipHome)
 	mainHandler.GET("/:projectId/:versionId", s.handleGetRequestToWakeupUrl)
@@ -89,16 +87,35 @@ func (s *TriggerServer) Start() {
 
 	mux := newMux(mainHandler, otherHandler, s.oneko)
 
-	srv := &http.Server{
+	var servers []*http.Server
+
+	servers = append(servers, &http.Server{
 		Addr:    address,
 		Handler: mux,
+	})
+
+	if s.configuration.ONeko.Server.Port == s.configuration.ONeko.Server.MetricsPort {
+		mainHandler.GET("/metrics", metrics.PrometheusHandler())
+		mainHandler.GET("/up", s.upHandler)
+	} else {
+		metricsHandler := gin.New()
+		metricsHandler.GET("/metrics", metrics.PrometheusHandler())
+		metricsHandler.GET("/up", s.upHandler)
+		metricsServerAddress := fmt.Sprintf(":%d", s.configuration.ONeko.Server.MetricsPort)
+		servers = append(servers, &http.Server{
+			Addr:    metricsServerAddress,
+			Handler: metricsHandler,
+		})
 	}
 
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("listen: %s\n", err)
-		}
-	}()
+	for _, server := range servers {
+		srv := server
+		go func() {
+			if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+				log.Fatalf("listen: %s\n", err)
+			}
+		}()
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -106,8 +123,10 @@ func (s *TriggerServer) Start() {
 	s.log.Info("shutting down server")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("server forced to shutdown:", err)
+	for _, server := range servers {
+		if err := server.Shutdown(ctx); err != nil {
+			log.Fatal("server forced to shutdown:", err)
+		}
 	}
 }
 

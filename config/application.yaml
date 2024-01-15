@@ -5,3 +5,4 @@ oneko:
   catnipUrl: localhost:8090
   server:
     port: 8090
+    metricsPort: 8091

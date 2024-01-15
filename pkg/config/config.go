@@ -100,11 +100,11 @@ type Config struct {
 }
 
 type ONekoConfig struct {
-	Api       ApiConfig     `yaml:"api" validate:"required,dive"`
+	Api       ApiConfig     `yaml:"api" validate:"required"`
 	Mode      Mode          `yaml:"mode" validate:"required,oneof='development' 'production'"`
-	Server    ServerConfig  `yaml:"server" validate:"required,dive"`
+	Server    ServerConfig  `yaml:"server" validate:"required"`
 	CatnipUrl string        `yaml:"catnipUrl" validate:"required,urlWithOptionalPort" mod:"trim,lcase,urlWithoutProtocol"`
-	Logging   LoggingConfig `yaml:"logging" validate:"required,dive"`
+	Logging   LoggingConfig `yaml:"logging" validate:"required"`
 }
 
 type LoggingConfig struct {
@@ -113,7 +113,7 @@ type LoggingConfig struct {
 
 type ApiConfig struct {
 	BaseUrl              string        `yaml:"baseUrl" validate:"required,uri"`
-	Auth                 AuthConfig    `yaml:"auth" validate:"required,dive"`
+	Auth                 AuthConfig    `yaml:"auth" validate:"required"`
 	ApiCallCacheDuration time.Duration `yaml:"apiCallCacheDuration" validate:"required,min=15s,max=10m"`
 }
 
@@ -139,5 +139,6 @@ const (
 )
 
 type ServerConfig struct {
-	Port int `yaml:"port" validate:"required,number"`
+	Port        int `yaml:"port" validate:"required,number"`
+	MetricsPort int `yaml:"metricsPort" validate:"number"`
 }
