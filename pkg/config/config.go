@@ -141,5 +141,5 @@ const (
 
 type ServerConfig struct {
 	Port        int `yaml:"port" validate:"required,number"`
-	MetricsPort int `yaml:"metricsPort" validate:"number"`
+	MetricsPort int `yaml:"metricsPort" validate:"required,number"`
 }
