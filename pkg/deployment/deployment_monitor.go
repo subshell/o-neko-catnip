@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/jellydator/ttlcache/v3"
-	"go.uber.org/zap"
+	"log/slog"
 	"o-neko-catnip/pkg/logger"
 	"time"
 )
@@ -12,7 +12,7 @@ import (
 type DeploymentMonitor struct {
 	client      *resty.Client
 	statusCache *ttlcache.Cache[string, *StatusResponse]
-	log         *zap.SugaredLogger
+	log         *slog.Logger
 }
 
 func New() *DeploymentMonitor {

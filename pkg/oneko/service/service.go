@@ -6,7 +6,7 @@ import (
 	"github.com/jellydator/ttlcache/v3"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"go.uber.org/zap"
+	"log/slog"
 	"o-neko-catnip/pkg/config"
 	"o-neko-catnip/pkg/logger"
 	"o-neko-catnip/pkg/oneko"
@@ -22,7 +22,7 @@ type projectAndVersionIds struct {
 }
 
 type Service struct {
-	log                            *zap.SugaredLogger
+	log                            *slog.Logger
 	projectIdToProjectCache        *ttlcache.Cache[string, *oneko.Project]
 	urlToProjectAndVersionIdsCache *ttlcache.Cache[string, projectAndVersionIds]
 	api                            *api.Api
@@ -37,10 +37,10 @@ func New(configuration *config.Config, ctx context.Context) *Service {
 		ttlcache.WithTTL[string, *oneko.Project](configuration.ONeko.Api.ApiCallCacheDuration),
 		ttlcache.WithDisableTouchOnHit[string, *oneko.Project](),
 		ttlcache.WithLoader[string, *oneko.Project](ttlcache.LoaderFunc[string, *oneko.Project](func(c *ttlcache.Cache[string, *oneko.Project], projectId string) *ttlcache.Item[string, *oneko.Project] {
-			log.Infow("no cached entry found, calling o-neko api", "projectUuid", projectId)
+			log.Info("no cached entry found, calling o-neko api", slog.String("projectUuid", projectId))
 			project, err := onekoApi.GetProjectById(projectId, ctx)
 			if err != nil {
-				log.Errorw("O-Neko API returned an error", "error", err)
+				log.Error("O-Neko API returned an error", slog.Any("error", err))
 				return nil
 			}
 			entry := c.Set(projectId, project, ttlcache.DefaultTTL)
@@ -97,7 +97,7 @@ func (o *Service) getProjectById(projectId string) (*oneko.Project, error) {
 	if fromCache == nil {
 		return nil, fmt.Errorf("no project found with id " + projectId)
 	} else {
-		o.log.Infow("serving project from cache", "projectId", projectId)
+		o.log.Info("serving project from cache", slog.String("projectId", projectId))
 		return fromCache.Value(), nil
 	}
 }
@@ -115,12 +115,12 @@ func (o *Service) GetProjectAndVersionByIds(projectUuid, versionUuid string) (*o
 }
 
 func (o *Service) TriggerDeployment(projectId, versionId string, ctx context.Context) error {
-	o.log.Debugw("triggering deployment", "projectId", projectId, "versionId", versionId)
+	o.log.Debug("triggering deployment", slog.String("projectId", projectId), slog.String("versionId", versionId))
 	err := o.api.Deploy(projectId, versionId, ctx)
 	if err != nil {
-		o.log.Infow("encountered an error while triggering a deployment", "projectId", projectId, "versionId", versionId, "error", err)
+		o.log.Info("encountered an error while triggering a deployment", slog.String("projectId", projectId), slog.String("versionId", versionId), slog.Any("error", err))
 	} else {
-		o.log.Infow("triggered deployment", "projectId", projectId, "versionId", versionId)
+		o.log.Info("triggered deployment", slog.String("projectId", projectId), slog.String("versionId", versionId))
 	}
 	o.projectIdToProjectCache.Delete(projectId)
 	return err
@@ -129,7 +129,7 @@ func (o *Service) TriggerDeployment(projectId, versionId string, ctx context.Con
 func (o *Service) GetAllProjectDomains() *utils.Set[string] {
 	err := o.ensureUrlToIdCacheIsPopulated()
 	if err != nil {
-		o.log.Infow("encountered an error populating the url cache", err)
+		o.log.Info("encountered an error populating the url cache", slog.Any("error", err))
 	}
 
 	set := utils.NewSet[string]()
@@ -149,10 +149,10 @@ func (o *Service) populateUrlToIdCache() error {
 	return err
 }
 
-func populateUrlToIdCacheAndReturnEntryForUrl(cache *ttlcache.Cache[string, projectAndVersionIds], log *zap.SugaredLogger, onekoApi *api.Api, deploymentUrl string) (*ttlcache.Item[string, projectAndVersionIds], error) {
+func populateUrlToIdCacheAndReturnEntryForUrl(cache *ttlcache.Cache[string, projectAndVersionIds], log *slog.Logger, onekoApi *api.Api, deploymentUrl string) (*ttlcache.Item[string, projectAndVersionIds], error) {
 	projects, err := onekoApi.GetAllProjects(context.Background())
 	if err != nil {
-		log.Errorw("O-Neko API returned an error", "error", err)
+		log.Error("O-Neko API returned an error", slog.Any("error", err))
 		return nil, err
 	}
 	var searchEntry *ttlcache.Item[string, projectAndVersionIds]

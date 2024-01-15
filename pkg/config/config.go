@@ -132,6 +132,7 @@ const (
 type LogLevel string
 
 const (
+	TRACE LogLevel = "trace"
 	DEBUG LogLevel = "debug"
 	INFO  LogLevel = "info"
 	WARN  LogLevel = "warn"

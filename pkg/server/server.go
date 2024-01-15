@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"log/slog"
 	"net/http"
 	"o-neko-catnip/pkg/config"
 	"o-neko-catnip/pkg/deployment"
@@ -18,14 +19,13 @@ import (
 	"syscall"
 	"time"
 
-	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
+	sloggin "github.com/samber/slog-gin"
 )
 
 type TriggerServer struct {
 	configuration *config.Config
-	log           *zap.SugaredLogger
+	log           *slog.Logger
 	oneko         *service.Service
 	monitor       *deployment.DeploymentMonitor
 	appVersion    string
@@ -54,15 +54,12 @@ func (s *TriggerServer) Start() {
 	otherHandler := gin.New()
 
 	// logging
-	mainHandler.Use(ginzap.GinzapWithConfig(s.log.Desugar(), &ginzap.Config{
-		TimeFormat: time.RFC3339,
-		UTC:        true,
-		SkipPaths:  []string{"/up", "/metrics"},
-	}))
-	mainHandler.Use(ginzap.RecoveryWithZap(s.log.Desugar(), true))
+	slogMiddleware := sloggin.NewWithFilters(s.log, sloggin.IgnorePath("/up", "/metrics"))
+	mainHandler.Use(slogMiddleware)
+	mainHandler.Use(gin.Recovery())
 	mainHandler.Use(s.catnipHeaderHandler())
-	otherHandler.Use(ginzap.Ginzap(s.log.Desugar(), time.RFC3339, true))
-	otherHandler.Use(ginzap.RecoveryWithZap(s.log.Desugar(), true))
+	otherHandler.Use(slogMiddleware)
+	otherHandler.Use(gin.Recovery())
 	otherHandler.Use(s.catnipHeaderHandler())
 
 	// custom template functions
@@ -99,6 +96,8 @@ func (s *TriggerServer) Start() {
 		mainHandler.GET("/up", s.upHandler)
 	} else {
 		metricsHandler := gin.New()
+		metricsHandler.Use(slogMiddleware)
+		metricsHandler.Use(gin.Recovery())
 		metricsHandler.GET("/metrics", metrics.PrometheusHandler())
 		metricsHandler.GET("/up", s.upHandler)
 		metricsServerAddress := fmt.Sprintf(":%d", s.configuration.ONeko.Server.MetricsPort)
@@ -175,15 +174,15 @@ func (s *TriggerServer) handleGetRequestToWakeupUrl(c *gin.Context) {
 }
 
 func (s *TriggerServer) handleGetRequestToProjectUrl(c *gin.Context) {
-	s.log.Debugw("incoming request to non-default url", "host", c.Request.Host)
+	s.log.Debug("incoming request to non-default url", slog.String("host", c.Request.Host))
 	project, version, err := s.oneko.GetProjectAndVersionForUrl(fmt.Sprintf("%s%s", c.Request.Host, c.Request.RequestURI))
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	s.log.Debugw("request to url of project version", "project", project.Name, "version", version.Name)
+	s.log.Debug("request to url of project version", slog.String("project", project.Name), slog.String("version", version.Name))
 	redirectUrl := s.getRedirectUrl(project, version, c)
-	s.log.Debugw("redirecting", "url", redirectUrl)
+	s.log.Debug("redirecting", slog.String("url", redirectUrl))
 	c.Redirect(http.StatusTemporaryRedirect, redirectUrl)
 }
 
