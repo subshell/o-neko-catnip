@@ -1,3 +1,6 @@
+## 1.3.1 (2024-01-15)
+* improve configuration of metrics port
+
 ## 1.3.0 (2024-01-15)
 * allow serving metrics under a different port
 * update dependencies to latest versions
