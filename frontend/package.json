@@ -9,15 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "alpinejs": "3.11.1",
-    "@mdi/js": "7.1.96"
+    "alpinejs": "3.13.3",
+    "@mdi/js": "7.4.47"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.13",
-    "postcss": "^8.4.21",
-    "tailwindcss": "3.2.6",
-    "typescript": "4.9.5",
-    "vite": "4.1.1",
-    "@types/alpinejs": "3.7.1"
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.33",
+    "tailwindcss": "3.4.1",
+    "typescript": "5.3.3",
+    "vite": "5.0.11",
+    "@types/alpinejs": "3.13.6"
   }
 }

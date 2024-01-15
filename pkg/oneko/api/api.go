@@ -6,7 +6,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"go.uber.org/zap"
+	"log/slog"
 	"net/http"
 	"o-neko-catnip/pkg/config"
 	"o-neko-catnip/pkg/logger"
@@ -17,7 +17,7 @@ import (
 
 type Api struct {
 	client            *resty.Client
-	log               *zap.SugaredLogger
+	log               *slog.Logger
 	wakeupCounter     prometheus.Counter
 	errorCounter      prometheus.Counter
 	apiCallDuration   prometheus.Histogram
@@ -79,7 +79,7 @@ func buildClient(conf *config.Config) (*resty.Client, error) {
 	return resty.New().
 		SetBaseURL(conf.ONeko.Api.BaseUrl).
 		SetDisableWarn(true).
-		SetLogger(logger.New("rest-client")).
+		SetLogger(logger.RestyAdapter(logger.New("rest-client"))).
 		SetBasicAuth(conf.ONeko.Api.Auth.Username, conf.ONeko.Api.Auth.Password), nil
 }
 
@@ -91,7 +91,7 @@ func (api *Api) StartConnectionMonitor(ctx context.Context) {
 			handlePing := func() {
 				err := api.ping(ctx)
 				if err != nil {
-					api.log.Errorw("error reaching o-neko", "error", err)
+					api.log.Error("error reaching o-neko", slog.Any("error", err))
 					api.onekoConnected.Set(0)
 				} else {
 					api.onekoConnected.Set(1)

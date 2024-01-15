@@ -1,12 +1,16 @@
 package logger
 
 import (
-	"fmt"
-	"go.uber.org/zap"
+	"log/slog"
 	"o-neko-catnip/pkg/config"
+	"os"
+	"sync"
 )
 
-var rootLogger *zap.SugaredLogger
+var rootLogger *slog.Logger
+var initOnce = sync.OnceFunc(setupRootLogger)
+
+const LevelTrace = slog.Level(-8)
 
 func setupRootLogger() {
 	if rootLogger != nil {
@@ -14,43 +18,48 @@ func setupRootLogger() {
 	}
 
 	mode := config.Configuration().ONeko.Mode
-	logLevelString := config.Configuration().ONeko.Logging.Level
 
 	var (
-		logger *zap.Logger
-		err    error
+		handler slog.Handler
 	)
 
 	if mode == config.DEVELOPMENT {
-		logger, err = createLogger(zap.NewDevelopmentConfig(), string(logLevelString))
-	} else if mode == config.PRODUCTION {
-		logger, err = createLogger(zap.NewProductionConfig(), string(logLevelString))
+		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource: true,
+			Level:     parseLogLevel(config.Configuration().ONeko.Logging.Level),
+		})
 	} else {
-		logger = zap.NewNop()
+		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource: true,
+			Level:     parseLogLevel(config.Configuration().ONeko.Logging.Level),
+		})
 	}
 
-	if err != nil {
-		panic(fmt.Sprintf("failed to setup logging: %v", err))
+	rootLogger = slog.New(handler)
+}
+
+func parseLogLevel(level config.LogLevel) slog.Level {
+	var result slog.Level
+
+	switch level {
+	case "trace":
+		result = LevelTrace
+	case "debug":
+		result = slog.LevelDebug
+	case "info":
+		result = slog.LevelInfo
+	case "warn":
+		result = slog.LevelWarn
+	case "error":
+		result = slog.LevelError
+	default:
+		result = slog.LevelDebug
 	}
 
-	rootLogger = logger.Sugar()
+	return result
 }
 
-func createLogger(config zap.Config, logLevelString string) (*zap.Logger, error) {
-	if logLevelString != "" {
-		levelRef := zap.NewAtomicLevel().Level()
-		logLevel := &levelRef
-		_ = logLevel.UnmarshalText([]byte(logLevelString))
-		config.Level = zap.NewAtomicLevelAt(*logLevel)
-	}
-	return config.Build(zap.AddCallerSkip(1))
-}
-
-func New(name string) *zap.SugaredLogger {
-	return Root().Named(name)
-}
-
-func Root() *zap.SugaredLogger {
-	setupRootLogger()
-	return rootLogger
+func New(name string) *slog.Logger {
+	initOnce()
+	return rootLogger.With(slog.String("logger", name))
 }
