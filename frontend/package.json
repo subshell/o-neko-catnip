@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "alpinejs": "3.13.3",
+    "alpinejs": "3.13.5",
     "@mdi/js": "7.4.47"
   },
   "devDependencies": {
