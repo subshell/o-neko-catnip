@@ -72,7 +72,7 @@ func (s *TriggerServer) Start() {
 	mainHandler.StaticFile("/favicon.ico", "public/assets/favicon.ico")
 
 	mainHandler.GET("/", s.handleGetRequestToCatnipHome)
-	mainHandler.GET("/:projectId/:versionId", s.handleGetRequestToWakeupUrl)
+	mainHandler.GET("wakeup", s.handleGetRequestToWakeupUrl)
 	mainHandler.NoRoute(s.redirectToHomePage)
 
 	apiHandler := mainHandler.Group("/api")
@@ -142,8 +142,8 @@ func (s *TriggerServer) handleGetRequestToCatnipHome(c *gin.Context) {
 }
 
 func (s *TriggerServer) handleGetRequestToWakeupUrl(c *gin.Context) {
-	projectId := c.Param("projectId")
-	versionId := c.Param("versionId")
+	projectId := c.Query("projectId")
+	versionId := c.Query("versionId")
 
 	project, version, err := s.oneko.GetProjectAndVersionByIds(projectId, versionId)
 
@@ -188,7 +188,7 @@ func (s *TriggerServer) handleGetRequestToProjectUrl(c *gin.Context) {
 
 func (s *TriggerServer) getRedirectUrl(project *oneko.Project, version *oneko.ProjectVersion, c *gin.Context) string {
 	protocol := getProtocol(c) + "://"
-	return fmt.Sprintf("%s%s/%s/%s?redirectTo=%s%s%s", protocol, s.configuration.ONeko.CatnipUrl, project.Uuid, version.Uuid, protocol, c.Request.Host, c.Request.URL.Path)
+	return fmt.Sprintf("%s%s/wakeup?projectId=%s&versionId=%s&redirectTo=%s%s%s", protocol, s.configuration.ONeko.CatnipUrl, project.Uuid, version.Uuid, protocol, c.Request.Host, c.Request.URL.Path)
 }
 
 func (s *TriggerServer) redirectToHomePage(c *gin.Context) {
