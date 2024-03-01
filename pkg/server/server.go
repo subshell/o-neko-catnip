@@ -72,7 +72,7 @@ func (s *TriggerServer) Start() {
 	mainHandler.StaticFile("/favicon.ico", "public/assets/favicon.ico")
 
 	mainHandler.GET("/", s.handleGetRequestToCatnipHome)
-	mainHandler.GET("wakeup", s.handleGetRequestToWakeupUrl)
+	mainHandler.GET("/wakeup", s.handleGetRequestToWakeupUrl)
 	mainHandler.NoRoute(s.redirectToHomePage)
 
 	apiHandler := mainHandler.Group("/api")
