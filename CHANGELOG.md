@@ -1,3 +1,8 @@
+## 1.3.2 (2024-03-04)
+* fix open redirects and update deps by @philmtd in https://github.com/subshell/o-neko-catnip/pull/41
+* update frontend dependencies by @philmtd in https://github.com/subshell/o-neko-catnip/pull/43
+* chore(deps): bump github.com/go-playground/validator/v10 from 10.18.0 to 10.19.0 by @dependabot in https://github.com/subshell/o-neko-catnip/pull/42
+
 ## 1.3.1 (2024-01-15)
 * improve configuration of metrics port
 
