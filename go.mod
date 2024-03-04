@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/mold/v4 v4.5.0
-	github.com/go-playground/validator/v10 v10.18.0
+	github.com/go-playground/validator/v10 v10.19.0
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/jellydator/ttlcache/v3 v3.2.0
