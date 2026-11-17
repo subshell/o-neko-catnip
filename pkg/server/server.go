@@ -225,11 +225,13 @@ func (s *TriggerServer) handleStatusRequest(c *gin.Context) {
 }
 
 func getProtocol(c *gin.Context) string {
+	if proto := c.GetHeader("X-Forwarded-Proto"); proto != "" {
+		return proto
+	}
 	if c.Request.TLS != nil {
 		return "https"
-	} else {
-		return "http"
 	}
+	return "http"
 }
 
 func formatAsDate(t time.Time) string {
