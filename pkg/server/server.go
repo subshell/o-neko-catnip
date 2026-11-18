@@ -16,6 +16,7 @@ import (
 	"o-neko-catnip/pkg/oneko/service"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -226,9 +227,15 @@ func (s *TriggerServer) handleStatusRequest(c *gin.Context) {
 
 func getProtocol(c *gin.Context) string {
 	if proto := c.GetHeader("X-Forwarded-Proto"); proto != "" {
-		return proto
+		proto = strings.TrimSpace(proto)
+		if idx := strings.Index(proto, ","); idx != -1 {
+			proto = strings.TrimSpace(proto[:idx])
+		}
+		if proto != "" {
+			return strings.ToLower(proto)
+		}
 	}
-	if c.Request.TLS != nil {
+	if c.Request != nil && c.Request.TLS != nil {
 		return "https"
 	}
 	return "http"
