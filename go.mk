@@ -33,7 +33,7 @@ lint:
 
 lint-ci:
 	$(GO) mod verify
-	$(LINTER) run -v --out-format=junit-xml > linter_results.xml
+	$(LINTER) run -v
 
 prepare:
 	$(GO) mod download
